@@ -887,14 +887,18 @@ async function deleteMember(id) {
 function calculatePaymentStatus(c) {
     const paid = Number(c.partialPayment || 0) + Number(c.advancePayment || 0) + Number(c.extraContribution || 0);
     const expected = Number(c.standardContribution || 1000) + Number(c.extraContribution || 0);
-    
-    if (paid === 0) {
+
+    // If no numeric paid values but a paymentDate exists, treat that as a full payment
+    const hasPaymentDate = !!(c.paymentDate);
+    const effectivePaid = (paid === 0 && hasPaymentDate) ? expected : paid;
+
+    if (effectivePaid === 0) {
         return 'Not Paid';
     }
-    if (paid < expected) {
+    if (effectivePaid < expected) {
         return 'Partial';
     }
-    
+
     // Check if payment date is after the 10th day of that billing month
     if (c.paymentDate) {
         const payDate = new Date(c.paymentDate);
@@ -952,8 +956,10 @@ function renderCollectionsTable() {
     });
 
     records.forEach((c, idx) => {
-        const totalPaid = Number(c.partialPayment || 0) + Number(c.advancePayment || 0) + Number(c.extraContribution || 0);
+        const rawPaid = Number(c.partialPayment || 0) + Number(c.advancePayment || 0) + Number(c.extraContribution || 0);
         const expected = Number(c.standardContribution || 1000) + Number(c.extraContribution || 0);
+        // If paid fields are zero but a paymentDate exists, show expected as totalPaid for display
+        const totalPaid = (rawPaid === 0 && c.paymentDate) ? expected : rawPaid;
         const outstanding = Math.max(0, expected - totalPaid);
         const status = calculatePaymentStatus(c);
         
