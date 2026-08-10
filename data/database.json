@@ -1,0 +1,503 @@
+{
+  "members": [
+    {
+      "id": "MEM001",
+      "name": "Yasith Mavinda",
+      "room": "001",
+      "phone": "0769055019",
+      "status": "Active",
+      "joinDate": "2026-06-01",
+      "leaveDate": "",
+      "notes": ""
+    },
+    {
+      "id": "MEM002",
+      "name": "Kaveesha",
+      "room": "001",
+      "phone": "",
+      "status": "Active",
+      "joinDate": "2026-06-01",
+      "leaveDate": "",
+      "notes": ""
+    },
+    {
+      "id": "MEM003",
+      "name": "Sithum Alwin",
+      "room": "001",
+      "phone": "",
+      "status": "Active",
+      "joinDate": "2026-06-01",
+      "leaveDate": "",
+      "notes": ""
+    },
+    {
+      "id": "MEM004",
+      "name": "Thathsara Dasun",
+      "room": "001",
+      "phone": "",
+      "status": "Active",
+      "joinDate": "2026-06-01",
+      "leaveDate": "",
+      "notes": ""
+    },
+    {
+      "id": "MEM005",
+      "name": "Udara Eshan",
+      "room": "002",
+      "phone": "",
+      "status": "Active",
+      "joinDate": "2026-06-01",
+      "leaveDate": "",
+      "notes": ""
+    },
+    {
+      "id": "MEM006",
+      "name": "Kavinda Muthuthanthree",
+      "room": "002",
+      "phone": "",
+      "status": "Active",
+      "joinDate": "2026-06-01",
+      "leaveDate": "",
+      "notes": ""
+    },
+    {
+      "id": "MEM007",
+      "name": "Tharindu Danushka",
+      "room": "002",
+      "phone": "",
+      "status": "Active",
+      "joinDate": "2026-06-01",
+      "leaveDate": "",
+      "notes": ""
+    },
+    {
+      "id": "MEM008",
+      "name": "Ganidu",
+      "room": "003",
+      "phone": "",
+      "status": "Active",
+      "joinDate": "2026-06-01",
+      "leaveDate": "",
+      "notes": ""
+    },
+    {
+      "id": "MEM009",
+      "name": "Moshan ",
+      "room": "003",
+      "phone": "",
+      "status": "Inactive",
+      "joinDate": "2026-06-01",
+      "leaveDate": "2026-06-30",
+      "notes": ""
+    },
+    {
+      "id": "MEM010",
+      "name": "Maleesha",
+      "room": "002",
+      "phone": "",
+      "status": "Active",
+      "joinDate": "2026-06-01",
+      "leaveDate": "",
+      "notes": ""
+    },
+    {
+      "id": "MEM011",
+      "name": "osanda",
+      "room": "003",
+      "phone": "",
+      "status": "Inactive",
+      "joinDate": "2026-06-01",
+      "leaveDate": "2026-08-01",
+      "notes": ""
+    },
+    {
+      "id": "MEM012",
+      "name": "Mahela",
+      "room": "003",
+      "phone": "",
+      "status": "Active",
+      "joinDate": "2026-06-01",
+      "leaveDate": "",
+      "notes": ""
+    }
+  ],
+  "collections": [
+    {
+      "month": "May 2026",
+      "memberId": "MEM008",
+      "memberName": "Ganidu",
+      "standardContribution": 1000,
+      "extraContribution": 0,
+      "advancePayment": 1000,
+      "partialPayment": 0,
+      "paymentDate": "2026-05-03",
+      "remarks": ""
+    },
+    {
+      "month": "May 2026",
+      "memberId": "MEM002",
+      "memberName": "Kaveesha",
+      "standardContribution": 1000,
+      "extraContribution": 0,
+      "advancePayment": 1000,
+      "partialPayment": 0,
+      "paymentDate": "2026-05-03",
+      "remarks": ""
+    },
+    {
+      "month": "May 2026",
+      "memberId": "MEM006",
+      "memberName": "Kavinda Muthuthanthree",
+      "standardContribution": 1000,
+      "extraContribution": 0,
+      "advancePayment": 1000,
+      "partialPayment": 0,
+      "paymentDate": "2026-05-03",
+      "remarks": ""
+    },
+    {
+      "month": "May 2026",
+      "memberId": "MEM012",
+      "memberName": "Mahela",
+      "standardContribution": 1000,
+      "extraContribution": 0,
+      "advancePayment": 1000,
+      "partialPayment": 0,
+      "paymentDate": "2026-05-03",
+      "remarks": ""
+    },
+    {
+      "month": "May 2026",
+      "memberId": "MEM009",
+      "memberName": "Moshan ",
+      "standardContribution": 1000,
+      "extraContribution": 0,
+      "advancePayment": 1000,
+      "partialPayment": 0,
+      "paymentDate": "2026-05-03",
+      "remarks": ""
+    },
+    {
+      "month": "May 2026",
+      "memberId": "MEM011",
+      "memberName": "osanda",
+      "standardContribution": 1000,
+      "extraContribution": 0,
+      "advancePayment": 1000,
+      "partialPayment": 0,
+      "paymentDate": "2026-05-03",
+      "remarks": ""
+    },
+    {
+      "month": "May 2026",
+      "memberId": "MEM003",
+      "memberName": "Sithum Alwin",
+      "standardContribution": 1000,
+      "extraContribution": 0,
+      "advancePayment": 1000,
+      "partialPayment": 0,
+      "paymentDate": "2026-05-03",
+      "remarks": ""
+    },
+    {
+      "month": "May 2026",
+      "memberId": "MEM007",
+      "memberName": "Tharindu Danushka",
+      "standardContribution": 1000,
+      "extraContribution": 0,
+      "advancePayment": 1000,
+      "partialPayment": 0,
+      "paymentDate": "2026-05-03",
+      "remarks": ""
+    },
+    {
+      "month": "May 2026",
+      "memberId": "MEM004",
+      "memberName": "Thathsara Dasun",
+      "standardContribution": 1000,
+      "extraContribution": 0,
+      "advancePayment": 1000,
+      "partialPayment": 0,
+      "paymentDate": "2026-05-03",
+      "remarks": ""
+    },
+    {
+      "month": "May 2026",
+      "memberId": "MEM005",
+      "memberName": "Udara Eshan",
+      "standardContribution": 1000,
+      "extraContribution": 0,
+      "advancePayment": 1000,
+      "partialPayment": 0,
+      "paymentDate": "2026-05-03",
+      "remarks": ""
+    },
+    {
+      "month": "May 2026",
+      "memberId": "MEM001",
+      "memberName": "Yasith Mavinda",
+      "standardContribution": 1000,
+      "extraContribution": 0,
+      "advancePayment": 1000,
+      "partialPayment": 0,
+      "paymentDate": "2026-05-03",
+      "remarks": ""
+    },
+    {
+      "month": "June 2026",
+      "memberId": "MEM008",
+      "memberName": "Ganidu",
+      "standardContribution": 1000,
+      "extraContribution": 0,
+      "advancePayment": 1000,
+      "partialPayment": 0,
+      "paymentDate": "2026-07-18",
+      "remarks": ""
+    },
+    {
+      "month": "June 2026",
+      "memberId": "MEM002",
+      "memberName": "Kaveesha",
+      "standardContribution": 1000,
+      "extraContribution": 0,
+      "advancePayment": 1000,
+      "partialPayment": 0,
+      "paymentDate": "2026-07-18",
+      "remarks": ""
+    },
+    {
+      "month": "June 2026",
+      "memberId": "MEM012",
+      "memberName": "Mahela",
+      "standardContribution": 1000,
+      "extraContribution": 0,
+      "advancePayment": 1000,
+      "partialPayment": 0,
+      "paymentDate": "2026-07-18",
+      "remarks": ""
+    },
+    {
+      "month": "June 2026",
+      "memberId": "MEM003",
+      "memberName": "Sithum Alwin",
+      "standardContribution": 1000,
+      "extraContribution": 0,
+      "advancePayment": 1000,
+      "partialPayment": 0,
+      "paymentDate": "2026-07-18",
+      "remarks": ""
+    },
+    {
+      "month": "June 2026",
+      "memberId": "MEM007",
+      "memberName": "Tharindu Danushka",
+      "standardContribution": 1000,
+      "extraContribution": 0,
+      "advancePayment": 1000,
+      "partialPayment": 0,
+      "paymentDate": "2026-07-18",
+      "remarks": ""
+    },
+    {
+      "month": "June 2026",
+      "memberId": "MEM004",
+      "memberName": "Thathsara Dasun",
+      "standardContribution": 1000,
+      "extraContribution": 0,
+      "advancePayment": 1000,
+      "partialPayment": 0,
+      "paymentDate": "2026-07-18",
+      "remarks": ""
+    },
+    {
+      "month": "June 2026",
+      "memberId": "MEM005",
+      "memberName": "Udara Eshan",
+      "standardContribution": 1000,
+      "extraContribution": 0,
+      "advancePayment": 1000,
+      "partialPayment": 0,
+      "paymentDate": "2026-07-18",
+      "remarks": ""
+    },
+    {
+      "month": "June 2026",
+      "memberId": "MEM001",
+      "memberName": "Yasith Mavinda",
+      "standardContribution": 1000,
+      "extraContribution": 0,
+      "advancePayment": 1000,
+      "partialPayment": 0,
+      "paymentDate": "2026-07-01",
+      "remarks": ""
+    },
+    {
+      "month": "July 2026",
+      "memberId": "MEM001",
+      "memberName": "Yasith Mavinda",
+      "standardContribution": 390,
+      "extraContribution": 0,
+      "advancePayment": 0,
+      "partialPayment": 0,
+      "paymentDate": "2026-07-01",
+      "remarks": ""
+    }
+  ],
+  "utilities": [
+    {
+      "month": "April 2026",
+      "water": 0,
+      "electricity": 0,
+      "internet": 0,
+      "gas": 0,
+      "cleaning": 0,
+      "other": 0,
+      "paidDate": "",
+      "paidBy": "",
+      "remarks": ""
+    },
+    {
+      "month": "May 2026",
+      "water": 6000,
+      "electricity": 5000,
+      "internet": 0,
+      "gas": 0,
+      "cleaning": 0,
+      "other": 0,
+      "paidDate": "2026-05-20",
+      "paidBy": "Kaveesha",
+      "remarks": "water bill 7435 Electricity bill 5343"
+    },
+    {
+      "month": "June 2026",
+      "water": 4393,
+      "electricity": 3532,
+      "internet": 0,
+      "gas": 0,
+      "cleaning": 0,
+      "other": 0,
+      "paidDate": "2026-07-18",
+      "paidBy": "Yasith Mavinda",
+      "remarks": "water bill 492.79 Electricity bill 3408"
+    },
+    {
+      "month": "July 2026",
+      "water": 0,
+      "electricity": 0,
+      "internet": 0,
+      "gas": 0,
+      "cleaning": 0,
+      "other": 0,
+      "paidDate": "",
+      "paidBy": "",
+      "remarks": ""
+    },
+    {
+      "month": "August 2026",
+      "water": 0,
+      "electricity": 0,
+      "internet": 0,
+      "gas": 0,
+      "cleaning": 0,
+      "other": 0,
+      "paidDate": "",
+      "paidBy": "",
+      "remarks": ""
+    },
+    {
+      "month": "September 2026",
+      "water": 0,
+      "electricity": 0,
+      "internet": 0,
+      "gas": 0,
+      "cleaning": 0,
+      "other": 0,
+      "paidDate": "",
+      "paidBy": "",
+      "remarks": ""
+    },
+    {
+      "month": "October 2026",
+      "water": 0,
+      "electricity": 0,
+      "internet": 0,
+      "gas": 0,
+      "cleaning": 0,
+      "other": 0,
+      "paidDate": "",
+      "paidBy": "",
+      "remarks": ""
+    },
+    {
+      "month": "November 2026",
+      "water": 0,
+      "electricity": 0,
+      "internet": 0,
+      "gas": 0,
+      "cleaning": 0,
+      "other": 0,
+      "paidDate": "",
+      "paidBy": "",
+      "remarks": ""
+    },
+    {
+      "month": "December 2026",
+      "water": 0,
+      "electricity": 0,
+      "internet": 0,
+      "gas": 0,
+      "cleaning": 0,
+      "other": 0,
+      "paidDate": "",
+      "paidBy": "",
+      "remarks": ""
+    },
+    {
+      "month": "January 2027",
+      "water": 0,
+      "electricity": 0,
+      "internet": 0,
+      "gas": 0,
+      "cleaning": 0,
+      "other": 0,
+      "paidDate": "",
+      "paidBy": "",
+      "remarks": ""
+    },
+    {
+      "month": "February 2027",
+      "water": 0,
+      "electricity": 0,
+      "internet": 0,
+      "gas": 0,
+      "cleaning": 0,
+      "other": 0,
+      "paidDate": "",
+      "paidBy": "",
+      "remarks": ""
+    },
+    {
+      "month": "March 2027",
+      "water": 0,
+      "electricity": 0,
+      "internet": 0,
+      "gas": 0,
+      "cleaning": 0,
+      "other": 0,
+      "paidDate": "",
+      "paidBy": "",
+      "remarks": ""
+    }
+  ],
+  "expenses": [],
+  "settings": {
+    "currency": "LKR",
+    "defaultContribution": 390,
+    "financialYear": 2026,
+    "startMonth": "April",
+    "maxMembers": 15,
+    "theme": "light",
+    "username": "yasith",
+    "password": "1234"
+  }
+}
