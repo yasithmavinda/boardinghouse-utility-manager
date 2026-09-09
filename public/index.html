@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boarding House Utility Management System v2.0</title>
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Premium Login Overlay -->
+    <div id="login-container" class="login-wrapper">
+        <div class="login-bg-decorations">
+            <div class="bubble bubble-1"></div>
+            <div class="bubble bubble-2"></div>
+            <div class="bubble bubble-3"></div>
+        </div>
+        <div class="login-card">
+            <div class="login-header">
+                <div class="login-logo">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                </div>
+                <h2>Boarding Utility</h2>
+                <p>Sign in to access roommate registry, utility bills, collections, and analytics.</p>
+            </div>
+            <form id="login-form" onsubmit="handleLoginSubmit(event)">
+                <div class="form-group">
+                    <label class="form-label" for="login-username">Username</label>
+                    <input class="form-control" type="text" id="login-username" required placeholder="Enter username">
+                </div>
+                <div class="form-group" style="position: relative;">
+                    <label class="form-label" for="login-password">Password</label>
+                    <input class="form-control" type="password" id="login-password" required placeholder="Enter password">
+                    <button type="button" class="btn-toggle-pwd" onclick="toggleLoginPasswordVisibility()">
+                        <svg id="eye-open-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        <svg id="eye-closed-icon" style="display:none;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    </button>
+                </div>
+                <div class="login-footer">
+                    <button class="btn btn-primary btn-login" type="submit">Sign In</button>
+                </div>
+                <div id="login-error-msg" class="login-error" style="display: none;"></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="app-container" id="app-wrapper" style="display: none;">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand-section">
+                <div class="brand-logo">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                </div>
+                <div class="brand-title-wrap">
+                    <span class="brand-name">Boarding Utility</span>
+                    <span class="brand-version">System v2.0</span>
+                    <div class="server-status" id="server-status">
+                        <span class="status-dot"></span>
+                        <span class="status-text">Connecting...</span>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="nav-menu">
+                <ul style="list-style: none;">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-tab="dashboard">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="members">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            Roommates Registry
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="collections">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                            Rent & Collections
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="utilities">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                            Utility Bills Log
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="expenses">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="12" y1="10" x2="12" y2="10"/><line x1="12" y1="14" x2="12" y2="14"/><path d="M12 18h.01"/></svg>
+                            Misc Expenditures
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="monthly-summary">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                            Monthly Summary
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="payment-tracker">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+                            Payment Status Matrix
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="analytics">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+                            Analytics & Trends
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="reports">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                            Reports Binder
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="settings">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                            Settings
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="help">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            Help & Guide
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <button class="theme-toggle-btn" id="theme-toggle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+                    </svg>
+                    Dark Mode
+                </button>
+                <button class="logout-btn" id="logout-btn" onclick="handleLogout()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                        <polyline points="16 17 21 12 16 7"/>
+                        <line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                    Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Display Panel -->
+        <main class="main-content">
+            
+            <!-- 1. DASHBOARD TAB -->
+            <section id="dashboard" class="tab-pane active">
+                <div class="pane-header">
+                    <div class="pane-title-wrap">
+                        <h2 class="pane-title">Operational Dashboard</h2>
+                        <p class="pane-subtitle">Live overview of monthly rental collections, utility costs, active roommates, and cash flows</p>
+                    </div>
+                </div>
+
+                <!-- KPI Widgets Row -->
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Current Month</span>
+                            <div class="kpi-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+                        </div>
+                        <div class="kpi-value" id="kpi-cur-month">-</div>
+                        <div class="kpi-subtext">Active operational cycle</div>
+                    </div>
+                    
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Total Roommates</span>
+                            <div class="kpi-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+                        </div>
+                        <div class="kpi-value" id="kpi-total-members">0</div>
+                        <div class="kpi-subtext">
+                            <span id="kpi-paid-members">0</span> paid | <span id="kpi-unpaid-members">0</span> unpaid
+                        </div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Expected Collections</span>
+                            <div class="kpi-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+                        </div>
+                        <div class="kpi-value" id="kpi-expected-collection">Rs. 0.00</div>
+                        <div class="kpi-subtext">Annual expected roommate contributions</div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Collected Amount</span>
+                            <div class="kpi-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+                        </div>
+                        <div class="kpi-value" id="kpi-collected-amount">Rs. 0.00</div>
+                        <div class="kpi-subtext">
+                            Rate: <span class="trend-up" id="kpi-collection-rate">0%</span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Outstanding Amount</span>
+                            <div class="kpi-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+                        </div>
+                        <div class="kpi-value" id="kpi-outstanding-amount">Rs. 0.00</div>
+                        <div class="kpi-subtext">Unpaid roommate arrears</div>
+                    </div>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Water Expenditures</span>
+                            <div class="kpi-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></div>
+                        </div>
+                        <div class="kpi-value" id="kpi-water-expenses">Rs. 0.00</div>
+                        <div class="kpi-subtext">Total cumulative water costs</div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Electricity Costs</span>
+                            <div class="kpi-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+                        </div>
+                        <div class="kpi-value" id="kpi-elec-expenses">Rs. 0.00</div>
+                        <div class="kpi-subtext">Total cumulative electricity costs</div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Total Boarding Expenditures</span>
+                            <div class="kpi-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="12" y1="10" x2="12" y2="10"/><line x1="12" y1="14" x2="12" y2="14"/><path d="M12 18h.01"/></svg></div>
+                        </div>
+                        <div class="kpi-value" id="kpi-total-expenses">Rs. 0.00</div>
+                        <div class="kpi-subtext">Utilities + miscellaneous history</div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Carry Forward Balance</span>
+                            <div class="kpi-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+                        </div>
+                        <div class="kpi-value" id="kpi-carry-forward">Rs. 0.00</div>
+                        <div class="kpi-subtext">Net cash balance carried forward</div>
+                    </div>
+
+                    <div class="kpi-card" style="border-color: var(--color-paid);">
+                        <div class="kpi-header">
+                            <span class="kpi-label" style="color: var(--color-paid);">Net Savings Balance</span>
+                            <div class="kpi-icon-wrap" style="background-color: var(--color-paid-bg); color: var(--color-paid);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+                        </div>
+                        <div class="kpi-value" id="kpi-net-savings" style="color: var(--color-paid);">Rs. 0.00</div>
+                        <div class="kpi-subtext">Total Collections - Total Expenses</div>
+                    </div>
+                </div>
+
+                <!-- Charts & Stats Grid Section -->
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <span class="chart-title">Monthly Cash Flows (Collections vs Expenses)</span>
+                        <div class="chart-container">
+                            <canvas id="chart-trend"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <span class="chart-title">Payment Status Distribution</span>
+                        <div class="chart-container" style="display: flex; align-items: center; justify-content: space-between;">
+                            <div style="width: 60%; height: 100%;">
+                                <canvas id="chart-status-dist"></canvas>
+                            </div>
+                            <div style="width: 35%; padding-left: 10px;">
+                                <table class="custom-table" style="font-size: 0.8rem; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm);">
+                                    <tbody id="dashboard-status-counts">
+                                        <!-- Computed in JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <span class="chart-title">Utility Expense Category Splits</span>
+                        <div class="chart-container">
+                            <canvas id="chart-utility-breakdown"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <span class="chart-title">Outstanding Balances by Roommate</span>
+                        <div class="chart-container">
+                            <canvas id="chart-outstanding"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <span class="chart-title">Monthly Surplus / Deficit Trend</span>
+                        <div class="chart-container">
+                            <canvas id="chart-cash-flow"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <span class="chart-title">Cumulative Cash Flow Trend (Carry Forward)</span>
+                        <div class="chart-container">
+                            <canvas id="chart-cumulative"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 2. ROOMMATES REGISTRY TAB -->
+            <section id="members" class="tab-pane">
+                <div class="pane-header">
+                    <div class="pane-title-wrap">
+                        <h2 class="pane-title">Roommate Registry</h2>
+                        <p class="pane-subtitle">Register roommates, assign room numbers, manage active residency profiles and contract details</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="openAddMemberModal()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            Add Roommate
+                        </button>
+                    </div>
+                </div>
+
+                <div class="data-card">
+                    <div class="card-header-actions">
+                        <span class="card-title">Roommates Index Directory</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Member ID</th>
+                                    <th>Full Name</th>
+                                    <th>Room Number</th>
+                                    <th>Phone Number</th>
+                                    <th>Status</th>
+                                    <th>Join Date</th>
+                                    <th>Leave Date</th>
+                                    <th>Notes</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="members-tbody">
+                                <!-- Computed in JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. RENT & COLLECTIONS TAB -->
+            <section id="collections" class="tab-pane">
+                <div class="pane-header">
+                    <div class="pane-title-wrap">
+                        <h2 class="pane-title">Rent & Utility Collections</h2>
+                        <p class="pane-subtitle">Log rent deposits, split utilities extra contributions, manage partial payments and late records</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary" onclick="exportToCSV('collections')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Export to CSV
+                        </button>
+                        <button class="btn btn-primary" onclick="openAddCollectionModal()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            Log Roommate Payment
+                        </button>
+                    </div>
+                </div>
+
+                <div class="data-card">
+                    <!-- Filters Grid -->
+                    <div class="filter-bar">
+                        <div class="filters-group">
+                            <select class="select-input" id="filter-collections-month" onchange="renderCollectionsTable()">
+                                <option value="">All Months</option>
+                                <!-- Computed in JS -->
+                            </select>
+                            <select class="select-input" id="filter-collections-member" onchange="renderCollectionsTable()">
+                                <option value="">All Roommates</option>
+                                <!-- Computed in JS -->
+                            </select>
+                            <select class="select-input" id="filter-collections-status" onchange="renderCollectionsTable()">
+                                <option value="">All Statuses</option>
+                                <option value="Paid">Paid</option>
+                                <option value="Partial">Partial</option>
+                                <option value="Late">Late</option>
+                                <option value="Not Paid">Not Paid</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Month</th>
+                                    <th>Roommate</th>
+                                    <th>Standard Contribution</th>
+                                    <th>Extra Contribution</th>
+                                    <th>Advance Payment</th>
+                                    <th>Partial Payment</th>
+                                    <th>Total Paid</th>
+                                    <th>Outstanding Due</th>
+                                    <th>Payment Date</th>
+                                    <th>Payment Status</th>
+                                    <th>Remarks</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="collections-tbody">
+                                <!-- Computed in JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. UTILITY BILLS LOG TAB -->
+            <section id="utilities" class="tab-pane">
+                <div class="pane-header">
+                    <div class="pane-title-wrap">
+                        <h2 class="pane-title">Monthly Utility Bills Master Log</h2>
+                        <p class="pane-subtitle">Record water, electricity, wifi, gas, and cleaning expenditures incurred monthly</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary" onclick="exportToCSV('utilities')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Export to CSV
+                        </button>
+                    </div>
+                </div>
+
+                <div class="data-card">
+                    <div class="card-header-actions">
+                        <span class="card-title">Utility Expenditure Grid Log</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Month</th>
+                                    <th>Water Bill</th>
+                                    <th>Electricity Bill</th>
+                                    <th>Internet</th>
+                                    <th>Gas Cylinder</th>
+                                    <th>Cleaning Share</th>
+                                    <th>Other Expenses</th>
+                                    <th>Total Expenses</th>
+                                    <th>Bill Paid Date</th>
+                                    <th>Paid By Roommate</th>
+                                    <th>Remarks</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="utilities-tbody">
+                                <!-- Computed in JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. MISCELLANEOUS EXPENDITURES TAB -->
+            <section id="expenses" class="tab-pane">
+                <div class="pane-header">
+                    <div class="pane-title-wrap">
+                        <h2 class="pane-title">Miscellaneous Expenditures Log</h2>
+                        <p class="pane-subtitle">Log ad-hoc boarding expenditures like plumber fixes, hardware supplies, and emergency repairs</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="openAddExpenseModal()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            Record Expense
+                        </button>
+                    </div>
+                </div>
+
+                <div class="data-card">
+                    <div class="card-header-actions">
+                        <span class="card-title">Miscellaneous Expense Ledger</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Expense ID</th>
+                                    <th>Transaction Date</th>
+                                    <th>Operational Month</th>
+                                    <th>Category</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Paid To Vendor</th>
+                                    <th>Payment Method</th>
+                                    <th>Reference No</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expenses-tbody">
+                                <!-- Computed in JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 6. MONTHLY SUMMARY TAB -->
+            <section id="monthly-summary" class="tab-pane">
+                <div class="pane-header">
+                    <div class="pane-title-wrap">
+                        <h2 class="pane-title">Monthly Financial Performance Summary</h2>
+                        <p class="pane-subtitle">Aggregated collections, utility bills totals, other expenditures, cash flows and carry-forward balances</p>
+                    </div>
+                </div>
+
+                <div class="data-card">
+                    <div class="card-header-actions">
+                        <span class="card-title">Monthly Performance Grid</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Month</th>
+                                    <th>Expected Collections</th>
+                                    <th>Actual Collections</th>
+                                    <th>Water Bills</th>
+                                    <th>Electricity Bills</th>
+                                    <th>Other Expenses</th>
+                                    <th>Total Expenses</th>
+                                    <th>Monthly Surplus</th>
+                                    <th>Monthly Deficit</th>
+                                    <th>Carry Forward Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="summary-tbody">
+                                <!-- Computed in JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 7. PAYMENT STATUS MATRIX TAB -->
+            <section id="payment-tracker" class="tab-pane">
+                <div class="pane-header">
+                    <div class="pane-title-wrap">
+                        <h2 class="pane-title">Payment Status Matrix Tracker</h2>
+                        <p class="pane-subtitle">Visual calendar matrix displaying roommate payment status records month-by-month</p>
+                    </div>
+                </div>
+
+                <div class="data-card">
+                    <div class="card-header-actions">
+                        <span class="card-title">Annual Roommate Payment Matrix Overview</span>
+                    </div>
+                    
+                    <!-- Matrix Grid Container -->
+                    <div class="matrix-container" id="tracker-container">
+                        <!-- Plotted dynamically in JS -->
+                    </div>
+                    
+                    <!-- Legend Indicators -->
+                    <div class="matrix-legend">
+                        <div class="legend-item">
+                            <div class="legend-color-dot" style="background-color: var(--color-paid-bg); border: 1.5px solid var(--color-paid);"></div>
+                            <span><strong>P</strong> - Paid in Full (on/before 10th)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color-dot" style="background-color: var(--color-late-bg); border: 1.5px solid var(--color-late);"></div>
+                            <span><strong>L</strong> - Late Payment (after 10th)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color-dot" style="background-color: var(--color-partial-bg); border: 1.5px solid var(--color-partial);"></div>
+                            <span><strong>S</strong> - Split / Partial payment</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color-dot" style="background-color: var(--color-notpaid-bg); border: 1.5px solid var(--color-notpaid);"></div>
+                            <span><strong>N</strong> - Not Paid (Unpaid)</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 8. ANALYTICS & TRENDS TAB -->
+            <section id="analytics" class="tab-pane">
+                <div class="pane-header">
+                    <div class="pane-title-wrap">
+                        <h2 class="pane-title">Boarding Analytics & Trends</h2>
+                        <p class="pane-subtitle">Overview of utility expenditures margins, average payment sizes, outstanding balances, and member ledgers</p>
+                    </div>
+                </div>
+
+                <!-- High level values cards -->
+                <div class="analytics-summary-bar">
+                    <div class="analytics-card" style="border-top: 4px solid var(--color-notpaid);">
+                        <div class="analytics-card-label">Highest Utility Expense</div>
+                        <div class="analytics-card-value" id="analytics-highest-bill">Rs. 0.00</div>
+                        <div class="analytics-card-desc" id="analytics-highest-desc">Month: -</div>
+                    </div>
+                    
+                    <div class="analytics-card" style="border-top: 4px solid var(--color-paid);">
+                        <div class="analytics-card-label">Lowest Utility Expense</div>
+                        <div class="analytics-card-value" id="analytics-lowest-bill">Rs. 0.00</div>
+                        <div class="analytics-card-desc" id="analytics-lowest-desc">Month: -</div>
+                    </div>
+                    
+                    <div class="analytics-card" style="border-top: 4px solid var(--primary);">
+                        <div class="analytics-card-label">Avg Monthly Utilities</div>
+                        <div class="analytics-card-value" id="analytics-avg-bill">Rs. 0.00</div>
+                        <div class="analytics-card-desc">Monthly average utility bills</div>
+                    </div>
+
+                    <div class="analytics-card" style="border-top: 4px solid var(--color-late);">
+                        <div class="analytics-card-label">Avg Collection Payment</div>
+                        <div class="analytics-card-value" id="analytics-avg-collection">Rs. 0.00</div>
+                        <div class="analytics-card-desc">Average payment per transaction</div>
+                    </div>
+
+                    <div class="analytics-card" style="border-top: 4px solid var(--color-notpaid);">
+                        <div class="analytics-card-label">Total Outstanding Due</div>
+                        <div class="analytics-card-value" id="analytics-total-outstanding">Rs. 0.00</div>
+                        <div class="analytics-card-desc">Combined roommate debts</div>
+                    </div>
+
+                    <div class="analytics-card" style="border-top: 4px solid #ef4444;">
+                        <div class="analytics-card-label">Max Monthly Deficit</div>
+                        <div class="analytics-card-value" id="analytics-max-deficit">Rs. 0.00</div>
+                        <div class="analytics-card-desc">Highest monthly loss</div>
+                    </div>
+                </div>
+
+                <div class="data-card">
+                    <div class="card-header-actions">
+                        <span class="card-title">Roommate Collections & Arrears Ledger</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Member Name</th>
+                                    <th>Room Assignment</th>
+                                    <th>Total Rent Contributed</th>
+                                    <th>Total Utilities Paid</th>
+                                    <th>Outstanding Arrears Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="analytics-members-tbody">
+                                <!-- Computed in JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 9. REPORTS BINDER TAB -->
+            <section id="reports" class="tab-pane">
+                <div class="pane-header">
+                    <div class="pane-title-wrap">
+                        <h2 class="pane-title">Printable Reports Binder</h2>
+                        <p class="pane-subtitle">Configure, compile and print standardized operational reports formatted for paper A4</p>
+                    </div>
+                </div>
+
+                <div class="reports-layout">
+                    <!-- Reports Selector Menu -->
+                    <aside class="reports-sidebar">
+                        <h3 class="reports-nav-title">Select Report Binder</h3>
+                        <div class="reports-list" id="reports-menu-list">
+                            <!-- Computed in JS -->
+                        </div>
+                    </aside>
+                    
+                    <!-- Report View Panel -->
+                    <div class="report-viewer-card">
+                        <div class="pane-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 0;">
+                            <div class="report-print-title-wrap">
+                                <h3 id="report-title" style="font-family: var(--font-heading); font-size: 1.25rem;">Report Title</h3>
+                                <p id="report-subtitle" style="font-size: 0.8rem; color: var(--text-secondary);">Report subtitle text</p>
+                            </div>
+                            <div class="header-actions">
+                                <button class="btn btn-secondary" onclick="printReport()">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                                    Print to A4 / Save PDF
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Extra controls wrapper (like roommate selector in member statement) -->
+                        <div id="report-extra-controls" style="display:none; padding: 12px 0;">
+                            <div class="form-group" style="margin-bottom: 0; max-width: 250px;">
+                                <label class="form-label" for="report-member-select">Select Roommate Profile:</label>
+                                <select class="select-input" id="report-member-select" onchange="viewReportDetails()">
+                                    <!-- Populated in JS -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Print Table Container -->
+                        <div class="table-responsive" id="report-content-viewer">
+                            <!-- Injected report content in HTML -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 10. SYSTEM SETTINGS TAB -->
+            <section id="settings" class="tab-pane">
+                <div class="pane-header">
+                    <div class="pane-title-wrap">
+                        <h2 class="pane-title">System Settings</h2>
+                        <p class="pane-subtitle">Manage billing parameters, currency units, roommate spots, and system database backups</p>
+                    </div>
+                </div>
+
+                <div class="settings-grid">
+                    <!-- Variable Configuration Settings Form -->
+                    <form class="settings-section-card" onsubmit="saveSettings(event)">
+                        <h3 class="settings-sec-title">Billing Parameters</h3>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="settings-currency">System Currency Unit</label>
+                            <select class="form-control" id="settings-currency">
+                                <option value="LKR">LKR (Rs.)</option>
+                                <option value="USD">USD ($)</option>
+                                <option value="EUR">EUR (€)</option>
+                                <option value="GBP">GBP (£)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="settings-default-contrib">Default Room Contribution Fee</label>
+                            <input class="form-control" type="number" id="settings-default-contrib" required min="0">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="settings-fy">Operational Financial Year</label>
+                            <input class="form-control" type="number" id="settings-fy" required min="2000" max="2100">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="settings-start-month">Start Calendar Month</label>
+                            <select class="form-control" id="settings-start-month">
+                                <option value="April">April (Standard)</option>
+                                <option value="January">January</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="settings-max-members">Maximum Boarder Slots</label>
+                            <input class="form-control" type="number" id="settings-max-members" required min="1" max="50">
+                        </div>
+
+                        <button class="btn btn-primary" type="submit" style="margin-top: 10px;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                            Apply Configurations
+                        </button>
+                    </form>
+
+                    <!-- Authentication Credentials Card -->
+                    <form class="settings-section-card" onsubmit="saveAuthSettings(event)">
+                        <h3 class="settings-sec-title">Administrative Credentials</h3>
+                        <p class="settings-info-text" style="margin-bottom: 16px;">Update the system administrator username and access password below.</p>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="settings-username">Admin Username</label>
+                            <input class="form-control" type="text" id="settings-username" required placeholder="e.g. admin">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="settings-password">Admin Password</label>
+                            <input class="form-control" type="password" id="settings-password" required placeholder="Enter new password">
+                        </div>
+
+                        <button class="btn btn-primary" type="submit" style="margin-top: 10px;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                            Update Credentials
+                        </button>
+                    </form>
+
+                    <!-- Data management panel -->
+                    <div class="settings-section-card">
+                        <h3 class="settings-sec-title">Local Database Maintenance</h3>
+                        <p class="settings-info-text">All data entries are stored locally on your device browser sandbox. Wiping browser caches may clear this database, so please utilize the JSON backup tools to secure copies.</p>
+                        
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                            <button class="btn btn-secondary" onclick="exportJSON()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                Export Database (.JSON)
+                            </button>
+                            <button class="btn btn-secondary" onclick="triggerImportJSON()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                Import Database (.JSON)
+                            </button>
+                            <input type="file" id="import-file-input" style="display: none;" accept=".json" onchange="importJSON(event)">
+                        </div>
+
+                        <div style="border-top: 1px solid var(--border-color); padding-top: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
+                            <button class="btn btn-danger" onclick="showModal('reset-confirm-modal')">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                Reset All Database Tables
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 11. HELP & GUIDE TAB -->
+            <section id="help" class="tab-pane">
+                <div class="pane-header">
+                    <div class="pane-title-wrap">
+                        <h2 class="pane-title">Help & Operator User Manual</h2>
+                        <p class="pane-subtitle">Learn how billing cycles work, how to split utility bills, and manage roommates rosters</p>
+                    </div>
+                </div>
+
+                <div class="help-grid">
+                    <div class="help-section">
+                        <h3 class="help-sec-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>
+                            1. System Initialization & Registry
+                        </h3>
+                        <ul class="help-list">
+                            <li class="help-item">
+                                <span class="help-item-title">1.1 System Configuration Parameters</span>
+                                <span class="help-item-desc">Navigate to the **Settings** tab. Set the Default monthly contribution per boarder, select LKR or preferred currency, specify the Operational Financial Year, and customize parameters. These configurations act as global variables for computations.</span>
+                            </li>
+                            <li class="help-item">
+                                <span class="help-item-title">1.2 Roommates Registry Directory</span>
+                                <span class="help-item-desc">Open the **Roommates Registry** tab. Use the "Add Roommate" button to add boarders. Toggling status to Active makes them count toward monthly splits. Toggle to Inactive when they leave. Room details and contact parameters propagate to dropdown selectors.</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="help-section">
+                        <h3 class="help-sec-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                            2. Data Entry & Billing Operations
+                        </h3>
+                        <ul class="help-list">
+                            <li class="help-item">
+                                <span class="help-item-title">2.1 Recording Monthly Roommate Payments</span>
+                                <span class="help-item-desc">Navigate to the **Rent & Collections** page. Click "Log Roommate Payment". Select the appropriate billing month and roommate profile. Standard monthly contribution is pre-filled, but custom extra, partial, or advance amounts can be input. Payment Date determines status: if paid *after* the 10th of the month, status automatically flags as **Late**. If unpaid, status flags **Not Paid**. If partially paid, it flags **Partial**.</span>
+                            </li>
+                            <li class="help-item">
+                                <span class="help-item-title">2.2 Logging Monthly Utility Invoices</span>
+                                <span class="help-item-desc">Open the **Utility Bills Log** page. Click the "Edit/Log" icon for the corresponding calendar month. Fill out water, electricity, internet, gas, and cleaning totals. The system automatically computes total monthly expenses and updates metrics.</span>
+                            </li>
+                            <li class="help-item">
+                                <span class="help-item-title">2.3 Recording Miscellaneous Cash Disbursements</span>
+                                <span class="help-item-desc">Log ad-hoc boarding costs (like plumbing fixes, broken locks, or kitchen bulb replacements) on the **Misc Expenditures** page. Categorize, log the paid amount, specify date, vendor paid to, and reference details. The system uses the transaction date to calculate totals for the respective billing month.</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="help-section">
+                        <h3 class="help-sec-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                            3. Analytics, Reports Binder & Backup Maintenance
+                        </h3>
+                        <ul class="help-list">
+                            <li class="help-item">
+                                <span class="help-item-title">3.1 Performance Summaries & Cash Flow Trends</span>
+                                <span class="help-item-desc">The **Monthly Summary** sheet aggregates all collection sums vs. total expenditures (utilities + misc) to compute cash flow. The Carry Forward recursively rolls cash surpluses or deficits forward month-over-month. The **Dashboard** plots these visual trends in six responsive charts (Collections vs. Expenses, status proportions, utility shares, roommate outstanding, flow margins, and cumulative balances).</span>
+                            </li>
+                            <li class="help-item">
+                                <span class="help-item-title">3.2 Visual Payment Tracker Matrix</span>
+                                <span class="help-item-desc">The **Payment Status Matrix** provides an annual grid showing colored indicators representing payment statuses by roommate and month. You can click on any grid dot to instantly log or edit roommate payments.</span>
+                            </li>
+                            <li class="help-item">
+                                <span class="help-item-title">3.3 Exporting Standardized A4 PDF Reports</span>
+                                <span class="help-item-desc">Open the **Reports Binder** tab. Click a report title in the report index to compile tables dynamically. Click "Print to A4 / Save PDF" to access the print layout. Print styles automatically format the page, hide the sidebar, and resize columns to crisp standard A4 portrait pages.</span>
+                            </li>
+                            <li class="help-item">
+                                <span class="help-item-title">3.4 Offline Data Security & Restore Actions</span>
+                                <span class="help-item-desc">Since the system runs locally inside browser sandbox LocalStorage, ensure database security by exporting database backups frequently. Go to **Settings** and click "Export Database (.JSON)" to save copy backups. If you switch devices, open settings, click "Import Database (.JSON)", and choose your backup file. To test out the system's capabilities instantly, click the "Seeding Mock Demonstration Data" button to auto-populate tables.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 1. Roommates Registry Edit Modal -->
+    <div class="modal-backdrop" id="member-modal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h4 class="modal-title" id="member-modal-title">Add New Roommate</h4>
+                <button class="btn-close" onclick="hideModal('member-modal')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <form onsubmit="saveMember(event)">
+                <div class="modal-body">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label" for="member-id">Member ID</label>
+                            <input class="form-control" type="text" id="member-id" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="member-name">Full Name</label>
+                            <input class="form-control" type="text" id="member-name" required placeholder="e.g. Ruwan Silva">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="member-room">Room Number</label>
+                            <input class="form-control" type="text" id="member-room" placeholder="e.g. 101">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="member-phone">Phone Number</label>
+                            <input class="form-control" type="text" id="member-phone" placeholder="e.g. 0771234567">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="member-status">Residency Status</label>
+                            <select class="form-control" id="member-status">
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="member-joindate">Contract Join Date</label>
+                            <input class="form-control" type="date" id="member-joindate" required>
+                        </div>
+                        <div class="form-group form-group-full">
+                            <label class="form-label" for="member-leavedate">Contract Leave Date (Optional)</label>
+                            <input class="form-control" type="date" id="member-leavedate">
+                        </div>
+                        <div class="form-group form-group-full">
+                            <label class="form-label" for="member-notes">Notes / Observations</label>
+                            <input class="form-control" type="text" id="member-notes" placeholder="e.g. Rent paid by company sponsor">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" onclick="hideModal('member-modal')">Cancel</button>
+                    <button class="btn btn-primary" type="submit">Save Roommate Profile</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. Collections Modal Form -->
+    <div class="modal-backdrop" id="collection-modal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h4 class="modal-title" id="collection-modal-title">Log Roommate Payment</h4>
+                <button class="btn-close" onclick="hideModal('collection-modal')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <form onsubmit="saveCollection(event)">
+                <input type="hidden" id="collection-action" value="ADD">
+                <div class="modal-body">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label" for="collection-month">Billing Month</label>
+                            <select class="form-control" id="collection-month" required>
+                                <!-- Populated in JS -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="collection-member">Select Roommate</label>
+                            <select class="form-control" id="collection-member" required>
+                                <!-- Populated in JS -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="collection-standard">Standard Contribution</label>
+                            <input class="form-control" type="number" id="collection-standard" required min="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="collection-extra">Extra Contribution (Utilities / Fees)</label>
+                            <input class="form-control" type="number" id="collection-extra" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="collection-advance">Advance Deposit Amount</label>
+                            <input class="form-control" type="number" id="collection-advance" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="collection-partial">Standard / Partial Rent Paid</label>
+                            <input class="form-control" type="number" id="collection-partial" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="collection-paydate">Payment Collection Date</label>
+                            <input class="form-control" type="date" id="collection-paydate">
+                        </div>
+                        <div class="form-group form-group-full">
+                            <label class="form-label" for="collection-remarks">Remarks</label>
+                            <input class="form-control" type="text" id="collection-remarks" placeholder="e.g. Paid online, bank receipt attached">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" onclick="hideModal('collection-modal')">Cancel</button>
+                    <button class="btn btn-primary" type="submit">Save Collection Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 3. Utilities Edit Modal -->
+    <div class="modal-backdrop" id="utility-modal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h4 class="modal-title" id="utility-modal-title">Log Utility Bills</h4>
+                <button class="btn-close" onclick="hideModal('utility-modal')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <form onsubmit="saveUtility(event)">
+                <input type="hidden" id="utility-month">
+                <div class="modal-body">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label" for="utility-water">Water Bill Amount</label>
+                            <input class="form-control" type="number" id="utility-water" required min="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="utility-electricity">Electricity Bill Amount</label>
+                            <input class="form-control" type="number" id="utility-electricity" required min="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="utility-internet">Internet / WiFi Invoice</label>
+                            <input class="form-control" type="number" id="utility-internet" required min="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="utility-gas">Gas Cylinder Expense</label>
+                            <input class="form-control" type="number" id="utility-gas" required min="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="utility-cleaning">Cleaning & Waste Disposal</label>
+                            <input class="form-control" type="number" id="utility-cleaning" required min="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="utility-other">Other Expenses</label>
+                            <input class="form-control" type="number" id="utility-other" required min="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="utility-paydate">Bill Settlement Date</label>
+                            <input class="form-control" type="date" id="utility-paydate">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="utility-paidby">Settled By (Member)</label>
+                            <select class="form-control" id="utility-paidby">
+                                <!-- Populated dynamically in JS -->
+                            </select>
+                        </div>
+                        <div class="form-group form-group-full">
+                            <label class="form-label" for="utility-remarks">Remarks</label>
+                            <input class="form-control" type="text" id="utility-remarks" placeholder="e.g. Paid cash from roommate reserve font">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" onclick="hideModal('utility-modal')">Cancel</button>
+                    <button class="btn btn-primary" type="submit">Save Monthly Bills</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 4. Miscellaneous Expense Modal -->
+    <div class="modal-backdrop" id="expense-modal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h4 class="modal-title" id="expense-modal-title">Record Expense</h4>
+                <button class="btn-close" onclick="hideModal('expense-modal')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <form onsubmit="saveExpense(event)">
+                <div class="modal-body">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label" for="expense-id">Expense ID</label>
+                            <input class="form-control" type="text" id="expense-id" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="expense-date">Transaction Date</label>
+                            <input class="form-control" type="date" id="expense-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="expense-category">Expense Category</label>
+                            <select class="form-control" id="expense-category">
+                                <option value="Maintenance">Maintenance & Repairs</option>
+                                <option value="Repairs">General Repairs</option>
+                                <option value="Supplies">House Supplies</option>
+                                <option value="Utilities">Ad-hoc Utilities</option>
+                                <option value="Other">Other Miscellaneous</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="expense-amount">Expenditure Amount</label>
+                            <input class="form-control" type="number" id="expense-amount" required min="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="expense-paidto">Paid To (Vendor)</label>
+                            <input class="form-control" type="text" id="expense-paidto" placeholder="e.g. Hardware Store">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="expense-method">Payment Method</label>
+                            <select class="form-control" id="expense-method">
+                                <option value="Cash">Cash</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                                <option value="Card">Credit/Debit Card</option>
+                            </select>
+                        </div>
+                        <div class="form-group form-group-full">
+                            <label class="form-label" for="expense-refno">Reference / TXN Number (Optional)</label>
+                            <input class="form-control" type="text" id="expense-refno" placeholder="e.g. TXN-100293">
+                        </div>
+                        <div class="form-group form-group-full">
+                            <label class="form-label" for="expense-description">Detailed Description</label>
+                            <input class="form-control" type="text" id="expense-description" required placeholder="e.g. Bought 2 LED light bulbs for kitchen">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" onclick="hideModal('expense-modal')">Cancel</button>
+                    <button class="btn btn-primary" type="submit">Save Expense Details</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 5. Reset Database Confirmation Modal -->
+    <div class="modal-backdrop" id="reset-confirm-modal">
+        <div class="modal-dialog" style="max-width: 400px;">
+            <div class="modal-header" style="border-bottom: none; padding-bottom: 0;">
+                <h4 class="modal-title" style="color: var(--color-notpaid);">Confirm Wiping Data</h4>
+                <button class="btn-close" onclick="hideModal('reset-confirm-modal')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding-top: 12px; text-align: center;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-notpaid)" stroke-width="2" style="width: 48px; height: 48px; margin-bottom: 16px;">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <p style="font-size: 0.95rem; font-weight: 600; line-height: 1.5; color: var(--text-primary);">
+                    Are you sure you want to permanently delete all roommates, payments, utilities, and expenses logs?
+                </p>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 8px;">
+                    This action cannot be undone.
+                </p>
+            </div>
+            <div class="modal-footer" style="background-color: transparent; border-top: none; justify-content: center; gap: 16px; padding-bottom: 24px;">
+                <button class="btn btn-secondary" onclick="hideModal('reset-confirm-modal')" style="min-width: 100px;">Cancel</button>
+                <button class="btn btn-danger" onclick="executeClearDatabase()" style="min-width: 100px;">Wipe Data</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Controller -->
+    <script src="app.js"></script>
+</body>
+</html>

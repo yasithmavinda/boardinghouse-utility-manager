@@ -14,6 +14,10 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
 // Serve static frontend files
+const staticPath = fs.existsSync(path.join(__dirname, 'public'))
+  ? path.join(__dirname, 'public')
+  : __dirname;
+app.use(express.static(staticPath));
 app.use(express.static(__dirname));
 
 // Default initial state
@@ -156,7 +160,10 @@ app.post('/api/state', authenticate, (req, res) => {
 // Catch-all route to serve index.html for undefined routes (supporting SPA style navigation if any)
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api/')) return next();
-  res.sendFile(path.join(__dirname, 'index.html'));
+  const indexPath = fs.existsSync(path.join(__dirname, 'public', 'index.html'))
+    ? path.join(__dirname, 'public', 'index.html')
+    : path.join(__dirname, 'index.html');
+  res.sendFile(indexPath);
 });
 
 if (require.main === module) {
