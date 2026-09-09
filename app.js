@@ -2310,6 +2310,7 @@ async function handleLoginSubmit(event) {
             usernameInput.value = '';
             passwordInput.value = '';
             showNotification('Signed in successfully!', 'success');
+            showAppScreen();
             await initApp();
         } else {
             errorEl.innerText = data.message || 'Incorrect username or password.';
