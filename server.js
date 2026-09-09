@@ -5,7 +5,10 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const DB_FILE = path.join(__dirname, 'data', 'database.json');
+const isVercel = process.env.VERCEL || process.env.NOW_REGION;
+const DB_FILE = isVercel
+  ? path.join('/tmp', 'database.json')
+  : path.join(__dirname, 'data', 'database.json');
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
@@ -156,7 +159,11 @@ app.get('*', (req, res, next) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`Boarding House Utility Management Server running on port ${PORT}`);
-  console.log(`Local Access: http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Boarding House Utility Management Server running on port ${PORT}`);
+    console.log(`Local Access: http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;

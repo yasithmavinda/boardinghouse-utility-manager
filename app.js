@@ -37,6 +37,33 @@ function getYearForMonth(monthName) {
     return index >= 9 ? fy + 1 : fy;
 }
 
+// Convert month name to JS Date month index (0=January, 11=December)
+function getMonthIndex(monthName) {
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const index = monthNames.indexOf(monthName);
+    return index === -1 ? 0 : index;
+}
+
+function isSameOrBeforeMonth(date, monthIndex, year) {
+    return date.getFullYear() < year || (date.getFullYear() === year && date.getMonth() <= monthIndex);
+}
+
+function isSameOrAfterMonth(date, monthIndex, year) {
+    return date.getFullYear() > year || (date.getFullYear() === year && date.getMonth() >= monthIndex);
+}
+
+function isMemberActiveInMonth(member, monthName) {
+    const monthIndex = getMonthIndex(monthName);
+    const year = getYearForMonth(monthName);
+    const joinDate = new Date(member.joinDate);
+    if (isNaN(joinDate.getTime())) return false;
+    if (!isSameOrBeforeMonth(joinDate, monthIndex, year)) return false;
+    if (member.status === 'Active') return true;
+    const leaveDate = member.leaveDate ? new Date(member.leaveDate) : null;
+    if (!leaveDate || isNaN(leaveDate.getTime())) return true;
+    return isSameOrAfterMonth(leaveDate, monthIndex, year);
+}
+
 // Helper to get formatted Month-Year string (e.g. "April 2026")
 function getMonthYearStr(monthName) {
     return `${monthName} ${getYearForMonth(monthName)}`;
@@ -112,6 +139,15 @@ async function loadFromStorage() {
                 console.error('Error parsing LocalStorage data', e);
             }
         }
+    }
+
+    // Ensure collections have unique IDs
+    if (state.collections) {
+        state.collections.forEach((c, idx) => {
+            if (!c.id) {
+                c.id = 'COL_' + (c.month ? c.month.replace(/\s+/g, '_') : 'm') + '_' + (c.memberId || idx) + '_' + idx;
+            }
+        });
     }
 
     // Initialize blank utilities list if missing or empty
@@ -300,7 +336,7 @@ async function seedDatabase() {
 
     await saveToStorage();
     showNotification('Sample data successfully loaded!');
-    await initApp();
+    refreshAllViews();
 }
 
 // Notification Helper
@@ -347,7 +383,7 @@ function getCollectionSummary(monthYear) {
     let outstanding = 0;
     
     records.forEach(r => {
-        const paid = Number(r.partialPayment || 0) + Number(r.advancePayment || 0) + Number(r.extraContribution || 0);
+        const paid = effectivePaid(r);
         const expected = Number(r.standardContribution || 1000) + Number(r.extraContribution || 0);
         totalPaid += paid;
         outstanding += Math.max(0, expected - paid);
@@ -386,17 +422,7 @@ function calculateMonthlySummaries() {
         
         // Active members in this month
         const activeMembersCount = state.members.filter(member => {
-            const joinDate = new Date(member.joinDate);
-            const mParts = monthYear.split(' ');
-            const mYear = parseInt(mParts[1]);
-            const monthStart = new Date(mYear, MONTHS_ORDER.indexOf(m), 1);
-            
-            if (member.status === 'Active') {
-                return joinDate <= monthStart;
-            } else {
-                const leaveDate = member.leaveDate ? new Date(member.leaveDate) : null;
-                return joinDate <= monthStart && (!leaveDate || leaveDate >= monthStart);
-            }
+            return isMemberActiveInMonth(member, m);
         }).length;
 
         const expectedCollection = activeMembersCount * Number(state.settings.defaultContribution);
@@ -447,6 +473,19 @@ function calculateMonthlySummaries() {
 // Chart Objects
 let charts = {};
 
+function refreshAllViews() {
+    renderDashboard();
+    renderMembersTable();
+    renderCollectionsTable();
+    renderUtilitiesTable();
+    renderExpensesTable();
+    renderMonthlySummaryTable();
+    renderPaymentTracker();
+    renderAnalytics();
+    renderReports();
+    populateSelectDropdowns();
+}
+
 async function initApp() {
     const token = localStorage.getItem('boarding_house_token');
     if (!token) {
@@ -458,16 +497,7 @@ async function initApp() {
     
     if (localStorage.getItem('boarding_house_token')) {
         showAppScreen();
-        renderDashboard();
-        renderMembersTable();
-        renderCollectionsTable();
-        renderUtilitiesTable();
-        renderExpensesTable();
-        renderMonthlySummaryTable();
-        renderPaymentTracker();
-        renderAnalytics();
-        renderReports();
-        populateSelectDropdowns();
+        refreshAllViews();
     }
 }
 
@@ -520,7 +550,7 @@ function renderDashboard() {
     
     // Outstanding LKR
     const outstandingSum = state.collections.reduce((sum, c) => {
-        const paid = Number(c.partialPayment || 0) + Number(c.advancePayment || 0) + Number(c.extraContribution || 0);
+        const paid = effectivePaid(c);
         const expected = Number(c.standardContribution || 1000) + Number(c.extraContribution || 0);
         return sum + Math.max(0, expected - paid);
     }, 0);
@@ -669,7 +699,7 @@ function renderDashboardCharts(summaries, statusCounts) {
         const outSum = state.collections
             .filter(c => c.memberId === m.id)
             .reduce((sum, c) => {
-                const paid = Number(c.partialPayment || 0) + Number(c.advancePayment || 0) + Number(c.extraContribution || 0);
+                const paid = effectivePaid(c);
                 const expected = Number(c.standardContribution || 1000) + Number(c.extraContribution || 0);
                 return sum + Math.max(0, expected - paid);
             }, 0);
@@ -870,7 +900,7 @@ async function saveMember(event) {
     
     await saveToStorage();
     hideModal('member-modal');
-    await initApp();
+    refreshAllViews();
 }
 
 async function deleteMember(id) {
@@ -879,7 +909,7 @@ async function deleteMember(id) {
         state.collections = state.collections.filter(c => c.memberId !== id);
         await saveToStorage();
         showNotification('Roommate profile and records deleted.', 'error');
-        await initApp();
+        refreshAllViews();
     }
 }
 
@@ -887,14 +917,18 @@ async function deleteMember(id) {
 function calculatePaymentStatus(c) {
     const paid = Number(c.partialPayment || 0) + Number(c.advancePayment || 0) + Number(c.extraContribution || 0);
     const expected = Number(c.standardContribution || 1000) + Number(c.extraContribution || 0);
-    
-    if (paid === 0) {
+
+    // If no numeric paid values but a paymentDate exists, treat that as a full payment
+    const hasPaymentDate = !!(c.paymentDate);
+    const effectivePaid = (paid === 0 && hasPaymentDate) ? expected : paid;
+
+    if (effectivePaid === 0) {
         return 'Not Paid';
     }
-    if (paid < expected) {
+    if (effectivePaid < expected) {
         return 'Partial';
     }
-    
+
     // Check if payment date is after the 10th day of that billing month
     if (c.paymentDate) {
         const payDate = new Date(c.paymentDate);
@@ -915,6 +949,14 @@ function calculatePaymentStatus(c) {
     return 'Paid';
 }
 
+// Return effective paid amount for a collection record. If numeric paid is zero
+// but a paymentDate exists, treat the expected amount as paid for display/aggregation.
+function effectivePaid(c) {
+    const paid = Number(c.partialPayment || 0) + Number(c.advancePayment || 0) + Number(c.extraContribution || 0);
+    const expected = Number(c.standardContribution || 1000) + Number(c.extraContribution || 0);
+    const hasPaymentDate = !!(c.paymentDate);
+    return (paid === 0 && hasPaymentDate) ? expected : paid;
+}
 function renderCollectionsTable() {
     const tbody = document.getElementById('collections-tbody');
     if (!tbody) return;
@@ -952,8 +994,10 @@ function renderCollectionsTable() {
     });
 
     records.forEach((c, idx) => {
-        const totalPaid = Number(c.partialPayment || 0) + Number(c.advancePayment || 0) + Number(c.extraContribution || 0);
+        const rawPaid = Number(c.partialPayment || 0) + Number(c.advancePayment || 0) + Number(c.extraContribution || 0);
         const expected = Number(c.standardContribution || 1000) + Number(c.extraContribution || 0);
+        // If paid fields are zero but a paymentDate exists, show expected as totalPaid for display
+        const totalPaid = (rawPaid === 0 && c.paymentDate) ? expected : rawPaid;
         const outstanding = Math.max(0, expected - totalPaid);
         const status = calculatePaymentStatus(c);
         
@@ -977,10 +1021,10 @@ function renderCollectionsTable() {
             <td style="max-width: 120px; overflow: hidden; text-overflow: ellipsis;" title="${c.remarks || ''}">${c.remarks || '-'}</td>
             <td>
                 <div class="action-buttons">
-                    <button class="btn-icon" onclick="openEditCollectionModal('${c.month}', '${c.memberId}')" title="Edit Log">
+                    <button class="btn-icon" onclick="openEditCollectionModal('${c.id || c.month}', '${c.memberId || ''}')" title="Edit Log">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                     </button>
-                    <button class="btn-icon btn-icon-danger" onclick="deleteCollection('${c.month}', '${c.memberId}')" title="Delete Log">
+                    <button class="btn-icon btn-icon-danger" onclick="deleteCollection('${c.id || c.month}', '${c.memberId || ''}')" title="Delete Log">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                     </button>
                 </div>
@@ -1010,8 +1054,8 @@ function openAddCollectionModal() {
     showModal('collection-modal');
 }
 
-function openEditCollectionModal(month, memberId) {
-    const c = state.collections.find(col => col.month === month && col.memberId === memberId);
+function openEditCollectionModal(monthOrId, memberId) {
+    const c = state.collections.find(col => (col.id && col.id === monthOrId) || (col.month === monthOrId && col.memberId === memberId));
     if (!c) return;
     
     document.getElementById('collection-modal-title').innerText = 'Modify Roommate Payment';
@@ -1059,7 +1103,9 @@ async function saveCollection(event) {
         return;
     }
 
+    const existingId = index > -1 ? state.collections[index].id : null;
     const collectionObj = {
+        id: existingId || ('COL_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5)),
         month,
         memberId,
         memberName: member.name,
@@ -1081,15 +1127,28 @@ async function saveCollection(event) {
 
     await saveToStorage();
     hideModal('collection-modal');
-    await initApp();
+    refreshAllViews();
 }
 
-async function deleteCollection(month, memberId) {
-    if (confirm(`Delete the payment record for roommate in ${month}?`)) {
-        state.collections = state.collections.filter(c => !(c.month === month && c.memberId === memberId));
+async function deleteCollection(monthOrId, memberId) {
+    let target = null;
+    if (monthOrId && memberId) {
+        target = state.collections.find(c => c.month === monthOrId && c.memberId === memberId);
+    } else if (monthOrId) {
+        target = state.collections.find(c => c.id === monthOrId || c.month === monthOrId);
+    }
+
+    const label = target ? `${target.memberName || 'Roommate'} (${target.month})` : 'this payment record';
+
+    if (confirm(`Are you sure you want to delete the payment log for ${label}?`)) {
+        if (monthOrId && memberId) {
+            state.collections = state.collections.filter(c => !(c.month === monthOrId && c.memberId === memberId));
+        } else if (monthOrId) {
+            state.collections = state.collections.filter(c => c.id !== monthOrId && c.month !== monthOrId);
+        }
         await saveToStorage();
         showNotification('Payment log removed.', 'error');
-        await initApp();
+        refreshAllViews();
     }
 }
 
@@ -1171,7 +1230,7 @@ async function saveUtility(event) {
     showNotification(`Utility bill values updated for ${month}!`);
     await saveToStorage();
     hideModal('utility-modal');
-    await initApp();
+    refreshAllViews();
 }
 
 // 5. Miscellaneous Expenses Tab
@@ -1277,7 +1336,7 @@ async function saveExpense(event) {
 
     await saveToStorage();
     hideModal('expense-modal');
-    await initApp();
+    refreshAllViews();
 }
 
 async function deleteExpense(id) {
@@ -1285,7 +1344,7 @@ async function deleteExpense(id) {
         state.expenses = state.expenses.filter(e => e.id !== id);
         await saveToStorage();
         showNotification('Expense entry removed.', 'error');
-        await initApp();
+        refreshAllViews();
     }
 }
 
@@ -1396,20 +1455,7 @@ function renderPaymentTracker() {
             statusCell.className = 'matrix-cell';
             
             // Check if member active in this month
-            const joinDate = new Date(member.joinDate);
-            const mParts = monthYear.split(' ');
-            const mYear = parseInt(mParts[1]);
-            const monthStart = new Date(mYear, MONTHS_ORDER.indexOf(m), 1);
-            let activeInMonth = false;
-            
-            if (member.status === 'Active') {
-                if (joinDate <= monthStart) activeInMonth = true;
-            } else {
-                const leaveDate = member.leaveDate ? new Date(member.leaveDate) : null;
-                if (joinDate <= monthStart && (!leaveDate || leaveDate >= monthStart)) {
-                    activeInMonth = true;
-                }
-            }
+            const activeInMonth = isMemberActiveInMonth(member, m);
 
             if (!activeInMonth) {
                 statusCell.innerHTML = `<span style="color: var(--text-muted); font-size: 0.75rem;">-</span>`;
@@ -1634,7 +1680,7 @@ function viewReportDetails() {
             const sorted = [...state.collections].sort((a,b) => MONTHS_ORDER.indexOf(a.month.split(' ')[0]) - MONTHS_ORDER.indexOf(b.month.split(' ')[0]));
             
             sorted.forEach(c => {
-                const totalPaid = Number(c.partialPayment || 0) + Number(c.advancePayment || 0) + Number(c.extraContribution || 0);
+                const totalPaid = effectivePaid(c);
                 const expected = Number(c.standardContribution || 1000) + Number(c.extraContribution || 0);
                 const outstanding = Math.max(0, expected - totalPaid);
                 const status = calculatePaymentStatus(c);
@@ -1722,7 +1768,7 @@ function viewReportDetails() {
         `;
         
         const outstandingRecords = state.collections.filter(c => {
-            const paid = Number(c.partialPayment || 0) + Number(c.advancePayment || 0) + Number(c.extraContribution || 0);
+            const paid = effectivePaid(c);
             const expected = Number(c.standardContribution || 1000) + Number(c.extraContribution || 0);
             return expected > paid;
         });
@@ -1731,7 +1777,7 @@ function viewReportDetails() {
             html += `<tr><td colspan="6" style="text-align:center; padding: 20px;">🎉 Great! There are no outstanding roommate balances!</td></tr>`;
         } else {
             outstandingRecords.forEach(c => {
-                const totalPaid = Number(c.partialPayment || 0) + Number(c.advancePayment || 0) + Number(c.extraContribution || 0);
+                const totalPaid = effectivePaid(c);
                 const expected = Number(c.standardContribution || 1000) + Number(c.extraContribution || 0);
                 const outstanding = expected - totalPaid;
                 const status = calculatePaymentStatus(c);
@@ -1834,7 +1880,7 @@ function viewReportDetails() {
         } else {
             let runningOutstanding = 0;
             payments.forEach(c => {
-                const totalPaid = Number(c.partialPayment || 0) + Number(c.advancePayment || 0) + Number(c.extraContribution || 0);
+                const totalPaid = effectivePaid(c);
                 const expected = Number(c.standardContribution || 1000) + Number(c.extraContribution || 0);
                 const outstanding = Math.max(0, expected - totalPaid);
                 runningOutstanding += outstanding;
@@ -1946,7 +1992,7 @@ async function saveSettings(event) {
     
     await saveToStorage();
     showNotification('System variable configuration updated!');
-    await initApp();
+    refreshAllViews();
 }
 
 // Backup & Restore (JSON Porting)
@@ -1975,7 +2021,7 @@ async function importJSON(event) {
                 state = parsed;
                 await saveToStorage();
                 showNotification('Backup data imported successfully!');
-                await initApp();
+                refreshAllViews();
             } else {
                 showNotification('Invalid backup file structure!', 'error');
             }
@@ -1999,7 +2045,7 @@ async function executeClearDatabase() {
     await saveToStorage();
     hideModal('reset-confirm-modal');
     showNotification('Database cleared completely.', 'error');
-    await initApp();
+    refreshAllViews();
 }
 
 // Dropdown Sync
