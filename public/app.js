@@ -2277,9 +2277,11 @@ function showAppScreen() {
     document.getElementById('app-wrapper').style.display = 'flex';
 }
 
-function handleAuthExpiration() {
+function handleAuthExpiration(quiet = true) {
     localStorage.removeItem('boarding_house_token');
-    showNotification('Session expired or unauthorized. Please sign in again.', 'error');
+    if (!quiet) {
+        showNotification('Session expired or unauthorized. Please sign in again.', 'error');
+    }
     showLoginScreen();
 }
 
