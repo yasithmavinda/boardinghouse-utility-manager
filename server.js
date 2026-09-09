@@ -101,16 +101,24 @@ function authenticate(req, res, next) {
   next();
 }
 
+// URL normalization middleware for Vercel Serverless routing compatibility
+app.use((req, res, next) => {
+  if (req.url && !req.url.startsWith('/api') && (req.url.startsWith('/login') || req.url.startsWith('/logout') || req.url.startsWith('/state'))) {
+    req.url = '/api' + req.url;
+  }
+  next();
+});
+
 // Endpoint: Login
-app.post('/api/login', (req, res) => {
-  const { username, password } = req.body;
+app.post(['/api/login', '/login'], (req, res) => {
+  const { username, password } = req.body || {};
   if (!username || !password) {
     return res.status(400).json({ success: false, message: 'Username and password are required' });
   }
   
   const data = readDatabase();
-  const dbUsername = data.settings.username || 'yasith';
-  const dbPassword = data.settings.password || '1234';
+  const dbUsername = process.env.ADMIN_USERNAME || data.settings.username || 'yasith';
+  const dbPassword = process.env.ADMIN_PASSWORD || data.settings.password || '1234';
   
   if (username === dbUsername && password === dbPassword) {
     const token = Math.random().toString(36).substring(2) + Date.now().toString(36);
@@ -122,7 +130,7 @@ app.post('/api/login', (req, res) => {
 });
 
 // Endpoint: Logout
-app.post('/api/logout', (req, res) => {
+app.post(['/api/logout', '/logout'], (req, res) => {
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.split(' ')[1];
@@ -132,16 +140,16 @@ app.post('/api/logout', (req, res) => {
 });
 
 // Endpoint: Retrieve global state
-app.get('/api/state', authenticate, (req, res) => {
+app.get(['/api/state', '/state'], authenticate, (req, res) => {
   const state = readDatabase();
   res.json(state);
 });
 
 // Endpoint: Update global state
-app.post('/api/state', authenticate, (req, res) => {
+app.post(['/api/state', '/state'], authenticate, (req, res) => {
   const existingData = readDatabase();
   const newData = req.body;
-  if (newData.settings) {
+  if (newData && newData.settings) {
     if (!newData.settings.username) {
       newData.settings.username = existingData.settings.username || 'yasith';
     }
