@@ -123,6 +123,18 @@
   ],
   "collections": [
     {
+      "month": "April 2026",
+      "memberId": "MEM005",
+      "memberName": "Udara Eshan",
+      "standardContribution": 0,
+      "extraContribution": 0,
+      "advancePayment": 0,
+      "partialPayment": 0,
+      "paymentDate": "2026-08-18",
+      "remarks": "",
+      "id": "COL_April_2026_MEM005_0"
+    },
+    {
       "month": "May 2026",
       "memberId": "MEM008",
       "memberName": "Ganidu",
@@ -131,7 +143,8 @@
       "advancePayment": 1000,
       "partialPayment": 0,
       "paymentDate": "2026-05-03",
-      "remarks": ""
+      "remarks": "",
+      "id": "COL_May_2026_MEM008_1"
     },
     {
       "month": "May 2026",
@@ -142,7 +155,8 @@
       "advancePayment": 1000,
       "partialPayment": 0,
       "paymentDate": "2026-05-03",
-      "remarks": ""
+      "remarks": "",
+      "id": "COL_May_2026_MEM002_2"
     },
     {
       "month": "May 2026",
@@ -153,7 +167,8 @@
       "advancePayment": 1000,
       "partialPayment": 0,
       "paymentDate": "2026-05-03",
-      "remarks": ""
+      "remarks": "",
+      "id": "COL_May_2026_MEM006_3"
     },
     {
       "month": "May 2026",
@@ -164,7 +179,8 @@
       "advancePayment": 1000,
       "partialPayment": 0,
       "paymentDate": "2026-05-03",
-      "remarks": ""
+      "remarks": "",
+      "id": "COL_May_2026_MEM012_4"
     },
     {
       "month": "May 2026",
@@ -175,7 +191,8 @@
       "advancePayment": 1000,
       "partialPayment": 0,
       "paymentDate": "2026-05-03",
-      "remarks": ""
+      "remarks": "",
+      "id": "COL_May_2026_MEM009_5"
     },
     {
       "month": "May 2026",
@@ -186,7 +203,8 @@
       "advancePayment": 1000,
       "partialPayment": 0,
       "paymentDate": "2026-05-03",
-      "remarks": ""
+      "remarks": "",
+      "id": "COL_May_2026_MEM011_6"
     },
     {
       "month": "May 2026",
@@ -197,7 +215,8 @@
       "advancePayment": 1000,
       "partialPayment": 0,
       "paymentDate": "2026-05-03",
-      "remarks": ""
+      "remarks": "",
+      "id": "COL_May_2026_MEM003_7"
     },
     {
       "month": "May 2026",
@@ -208,7 +227,8 @@
       "advancePayment": 1000,
       "partialPayment": 0,
       "paymentDate": "2026-05-03",
-      "remarks": ""
+      "remarks": "",
+      "id": "COL_May_2026_MEM007_8"
     },
     {
       "month": "May 2026",
@@ -219,7 +239,8 @@
       "advancePayment": 1000,
       "partialPayment": 0,
       "paymentDate": "2026-05-03",
-      "remarks": ""
+      "remarks": "",
+      "id": "COL_May_2026_MEM004_9"
     },
     {
       "month": "May 2026",
@@ -230,7 +251,8 @@
       "advancePayment": 1000,
       "partialPayment": 0,
       "paymentDate": "2026-05-03",
-      "remarks": ""
+      "remarks": "",
+      "id": "COL_May_2026_MEM005_10"
     },
     {
       "month": "May 2026",
@@ -241,7 +263,8 @@
       "advancePayment": 1000,
       "partialPayment": 0,
       "paymentDate": "2026-05-03",
-      "remarks": ""
+      "remarks": "",
+      "id": "COL_May_2026_MEM001_11"
     },
     {
       "month": "June 2026",
@@ -252,7 +275,8 @@
       "advancePayment": 1000,
       "partialPayment": 0,
       "paymentDate": "2026-07-18",
-      "remarks": ""
+      "remarks": "",
+      "id": "COL_June_2026_MEM008_12"
     },
     {
       "month": "June 2026",
@@ -263,7 +287,8 @@
       "advancePayment": 1000,
       "partialPayment": 0,
       "paymentDate": "2026-07-18",
-      "remarks": ""
+      "remarks": "",
+      "id": "COL_June_2026_MEM002_13"
     },
     {
       "month": "June 2026",
@@ -274,7 +299,8 @@
       "advancePayment": 1000,
       "partialPayment": 0,
       "paymentDate": "2026-07-18",
-      "remarks": ""
+      "remarks": "",
+      "id": "COL_June_2026_MEM012_14"
     },
     {
       "month": "June 2026",
@@ -285,7 +311,8 @@
       "advancePayment": 1000,
       "partialPayment": 0,
       "paymentDate": "2026-07-18",
-      "remarks": ""
+      "remarks": "",
+      "id": "COL_June_2026_MEM003_15"
     },
     {
       "month": "June 2026",
@@ -296,7 +323,8 @@
       "advancePayment": 1000,
       "partialPayment": 0,
       "paymentDate": "2026-07-18",
-      "remarks": ""
+      "remarks": "",
+      "id": "COL_June_2026_MEM007_16"
     },
     {
       "month": "June 2026",
@@ -307,7 +335,8 @@
       "advancePayment": 1000,
       "partialPayment": 0,
       "paymentDate": "2026-07-18",
-      "remarks": ""
+      "remarks": "",
+      "id": "COL_June_2026_MEM004_17"
     },
     {
       "month": "June 2026",
@@ -318,7 +347,8 @@
       "advancePayment": 1000,
       "partialPayment": 0,
       "paymentDate": "2026-07-18",
-      "remarks": ""
+      "remarks": "",
+      "id": "COL_June_2026_MEM005_18"
     },
     {
       "month": "June 2026",
@@ -329,7 +359,44 @@
       "advancePayment": 1000,
       "partialPayment": 0,
       "paymentDate": "2026-07-01",
+      "remarks": "",
+      "id": "COL_June_2026_MEM001_19"
+    },
+    {
+      "month": "July 2026",
+      "memberId": "MEM008",
+      "memberName": "Ganidu",
+      "standardContribution": 390,
+      "extraContribution": 0,
+      "advancePayment": 0,
+      "partialPayment": 0,
+      "paymentDate": "2026-08-18",
+      "remarks": "",
+      "id": "COL_July_2026_MEM008_20"
+    },
+    {
+      "id": "COL_July_2026_MEM006_23",
+      "month": "July 2026",
+      "memberId": "MEM006",
+      "memberName": "Kavinda Muthuthanthree",
+      "standardContribution": 1390,
+      "extraContribution": 0,
+      "advancePayment": 0,
+      "partialPayment": 0,
+      "paymentDate": "2026-08-18",
       "remarks": ""
+    },
+    {
+      "month": "July 2026",
+      "memberId": "MEM005",
+      "memberName": "Udara Eshan",
+      "standardContribution": 390,
+      "extraContribution": 0,
+      "advancePayment": 0,
+      "partialPayment": 0,
+      "paymentDate": "2026-08-18",
+      "remarks": "",
+      "id": "COL_July_2026_MEM005_21"
     },
     {
       "month": "July 2026",
@@ -340,7 +407,8 @@
       "advancePayment": 0,
       "partialPayment": 0,
       "paymentDate": "2026-07-01",
-      "remarks": ""
+      "remarks": "",
+      "id": "COL_July_2026_MEM001_22"
     }
   ],
   "utilities": [
@@ -496,7 +564,7 @@
     "financialYear": 2026,
     "startMonth": "April",
     "maxMembers": 15,
-    "theme": "light",
+    "theme": "dark",
     "username": "yasith",
     "password": "1234"
   }
