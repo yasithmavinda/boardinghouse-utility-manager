@@ -1561,5 +1561,26 @@ body {
     height: 18px;
 }
 
+/* Role Badges */
+.role-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.role-badge.admin {
+    background-color: rgba(37, 99, 235, 0.12);
+    color: #2563eb;
+    border: 1px solid rgba(37, 99, 235, 0.3);
+}
+.role-badge.viewer {
+    background-color: rgba(16, 185, 129, 0.12);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
 
 

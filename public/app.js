@@ -473,6 +473,65 @@ function calculateMonthlySummaries() {
 // Chart Objects
 let charts = {};
 
+function getUserRole() {
+    const token = localStorage.getItem('boarding_house_token');
+    if (!token) return 'viewer';
+    if (token.includes('_admin_')) return 'admin';
+    if (token.includes('_viewer_')) return 'viewer';
+    return localStorage.getItem('boarding_user_role') || 'admin';
+}
+
+function applyRolePermissions() {
+    const role = getUserRole();
+    const badgeEl = document.getElementById('user-role-badge');
+    const isViewer = (role !== 'admin');
+    
+    if (badgeEl) {
+        if (!isViewer) {
+            badgeEl.innerHTML = `<span class="role-badge admin">👑 Admin Access</span>`;
+        } else {
+            badgeEl.innerHTML = `<span class="role-badge viewer">👁️ Roommate (Read Only)</span>`;
+        }
+    }
+
+    // Toggle header action buttons (Add Roommate, Log Payment, Record Expense, etc.)
+    document.querySelectorAll('.header-actions button').forEach(btn => {
+        const text = btn.innerText || '';
+        if (isViewer && !text.includes('Export') && !text.includes('Print')) {
+            btn.style.display = 'none';
+        } else if (!isViewer && !text.includes('Export') && !text.includes('Print')) {
+            btn.style.display = 'inline-flex';
+        }
+    });
+
+    // Toggle table action column buttons (Edit/Delete)
+    document.querySelectorAll('.btn-action, .custom-table button, button[onclick*="delete"], button[onclick*="openEdit"]').forEach(btn => {
+        const onclickAttr = btn.getAttribute('onclick') || '';
+        if (isViewer && (onclickAttr.includes('delete') || onclickAttr.includes('edit') || onclickAttr.includes('openAdd') || onclickAttr.includes('save'))) {
+            btn.style.display = 'none';
+        } else if (!isViewer && (onclickAttr.includes('delete') || onclickAttr.includes('edit') || onclickAttr.includes('openAdd') || onclickAttr.includes('save'))) {
+            btn.style.display = 'inline-flex';
+        }
+    });
+
+    // Disable Settings Form controls for viewers
+    const settingsSec = document.getElementById('settings');
+    if (settingsSec) {
+        const inputs = settingsSec.querySelectorAll('input, select, button');
+        inputs.forEach(input => {
+            const btnText = input.innerText || '';
+            if (isViewer && !btnText.includes('Dark') && !btnText.includes('Sign Out')) {
+                input.disabled = true;
+                if (input.tagName === 'BUTTON' && !btnText.includes('Dark') && !btnText.includes('Sign Out')) {
+                    input.style.display = 'none';
+                }
+            } else {
+                input.disabled = false;
+            }
+        });
+    }
+}
+
 function refreshAllViews() {
     renderDashboard();
     renderMembersTable();
@@ -484,6 +543,7 @@ function refreshAllViews() {
     renderAnalytics();
     renderReports();
     populateSelectDropdowns();
+    applyRolePermissions();
 }
 
 async function initApp() {
@@ -2307,9 +2367,11 @@ async function handleLoginSubmit(event) {
         const data = await response.json();
         if (response.ok && data.success) {
             localStorage.setItem('boarding_house_token', data.token);
+            localStorage.setItem('boarding_user_role', data.role || 'viewer');
             usernameInput.value = '';
             passwordInput.value = '';
-            showNotification('Signed in successfully!', 'success');
+            const roleTitle = data.role === 'admin' ? 'Admin (Full Control)' : 'Roommate (View Only)';
+            showNotification(`Signed in successfully as ${roleTitle}!`, 'success');
             showAppScreen();
             await initApp();
         } else {

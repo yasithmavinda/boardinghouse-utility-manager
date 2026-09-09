@@ -97,6 +97,13 @@ function isValidToken(token) {
   return false;
 }
 
+function getTokenRole(token) {
+  if (!token) return 'viewer';
+  if (token.includes('_admin_')) return 'admin';
+  if (token.includes('_viewer_')) return 'viewer';
+  return 'admin'; // legacy default
+}
+
 // Authentication Middleware
 function authenticate(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -106,6 +113,15 @@ function authenticate(req, res, next) {
   const token = authHeader.split(' ')[1];
   if (!isValidToken(token)) {
     return res.status(401).json({ success: false, message: 'Invalid or expired session' });
+  }
+  req.userRole = getTokenRole(token);
+  next();
+}
+
+// Admin Write Authorization Middleware
+function requireAdmin(req, res, next) {
+  if (req.userRole !== 'admin') {
+    return res.status(403).json({ success: false, message: 'Permission denied: Only Admin can modify records.' });
   }
   next();
 }
@@ -127,16 +143,40 @@ app.post(['/api/login', '/login', '/'], (req, res, next) => {
   }
   
   const data = readDatabase();
-  const dbUsername = process.env.ADMIN_USERNAME || data.settings.username || 'yasith';
-  const dbPassword = process.env.ADMIN_PASSWORD || data.settings.password || '1234';
+  const adminUsername = process.env.ADMIN_USERNAME || data.settings.username || 'yasith';
+  const adminPassword = process.env.ADMIN_PASSWORD || data.settings.password || '1234';
+  const guestPassword = process.env.GUEST_PASSWORD || 'guest123';
   
-  if (username === dbUsername && password === dbPassword) {
-    const token = 'sess_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+  const cleanUser = username.trim().toLowerCase();
+  
+  // Admin Check
+  if (cleanUser === adminUsername.toLowerCase() && password === adminPassword) {
+    const token = 'sess_admin_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
     activeTokens.add(token);
-    res.json({ success: true, token });
-  } else {
-    res.status(401).json({ success: false, message: 'Incorrect username or password' });
+    return res.json({ success: true, token, role: 'admin', username: adminUsername });
   }
+  
+  // General Roommate Guest Check
+  if (cleanUser === 'roommate' && (password === guestPassword || password === '1234')) {
+    const token = 'sess_viewer_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+    activeTokens.add(token);
+    return res.json({ success: true, token, role: 'viewer', username: 'Roommate' });
+  }
+
+  // Registered Roommate Member Check
+  const matchedMember = data.members && data.members.find(m => 
+    (m.name && m.name.trim().toLowerCase() === cleanUser) || 
+    (m.id && m.id.trim().toLowerCase() === cleanUser) ||
+    (m.roomNumber && m.roomNumber.toString() === cleanUser)
+  );
+
+  if (matchedMember && (password === guestPassword || password === '1234' || password === 'roommate')) {
+    const token = 'sess_viewer_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+    activeTokens.add(token);
+    return res.json({ success: true, token, role: 'viewer', username: matchedMember.name });
+  }
+  
+  res.status(401).json({ success: false, message: 'Incorrect username or password' });
 });
 
 // Endpoint: Logout
@@ -155,8 +195,8 @@ app.get(['/api/state', '/state'], authenticate, (req, res) => {
   res.json(state);
 });
 
-// Endpoint: Update global state
-app.post(['/api/state', '/state'], authenticate, (req, res) => {
+// Endpoint: Update global state (Requires Admin)
+app.post(['/api/state', '/state'], authenticate, requireAdmin, (req, res) => {
   const existingData = readDatabase();
   const newData = req.body;
   if (newData && newData.settings) {
