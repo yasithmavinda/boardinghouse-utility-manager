@@ -119,6 +119,16 @@
       "joinDate": "2026-06-01",
       "leaveDate": "",
       "notes": ""
+    },
+    {
+      "id": "MEM013",
+      "name": "Sanath Jayasuriya",
+      "room": "005",
+      "phone": "0710001122",
+      "status": "Active",
+      "joinDate": "2026-06-01",
+      "leaveDate": "",
+      "notes": ""
     }
   ],
   "collections": [

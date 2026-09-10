@@ -102,6 +102,16 @@ function updateServerStatus(connected) {
 
 // LocalStorage Sync with Backend Integration
 async function loadFromStorage() {
+    let savedLocal = null;
+    const savedStr = localStorage.getItem('boarding_house_data');
+    if (savedStr) {
+        try {
+            savedLocal = JSON.parse(savedStr);
+        } catch (e) {
+            console.error('Error parsing LocalStorage data', e);
+        }
+    }
+
     let loadedFromBackend = false;
     try {
         const token = localStorage.getItem('boarding_house_token');
@@ -117,6 +127,21 @@ async function loadFromStorage() {
         if (response.ok) {
             const data = await response.json();
             if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+                // Merge local members/collections into backend state if backend is missing any locally saved entries
+                if (savedLocal && Array.isArray(savedLocal.members) && Array.isArray(data.members)) {
+                    savedLocal.members.forEach(localMem => {
+                        if (localMem && localMem.id && !data.members.some(m => m.id === localMem.id)) {
+                            data.members.push(localMem);
+                        }
+                    });
+                }
+                if (savedLocal && Array.isArray(savedLocal.collections) && Array.isArray(data.collections)) {
+                    savedLocal.collections.forEach(localCol => {
+                        if (localCol && localCol.id && !data.collections.some(c => c.id === localCol.id)) {
+                            data.collections.push(localCol);
+                        }
+                    });
+                }
                 state = data;
                 loadedFromBackend = true;
             }
@@ -127,17 +152,28 @@ async function loadFromStorage() {
 
     if (loadedFromBackend) {
         updateServerStatus(true);
-        // Sync to localStorage as a local backup
+        // Sync merged state to localStorage as a local backup
         localStorage.setItem('boarding_house_data', JSON.stringify(state));
+        // If logged in as admin, trigger background sync to backend database to ensure merged data persists in backend database
+        const role = getUserRole();
+        if (role === 'admin') {
+            try {
+                const token = localStorage.getItem('boarding_house_token');
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+                await fetch('/api/state', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(state)
+                });
+            } catch (err) {
+                console.warn('Background state sync failed:', err);
+            }
+        }
     } else {
         updateServerStatus(false);
-        const saved = localStorage.getItem('boarding_house_data');
-        if (saved) {
-            try {
-                state = JSON.parse(saved);
-            } catch (e) {
-                console.error('Error parsing LocalStorage data', e);
-            }
+        if (savedLocal) {
+            state = savedLocal;
         }
     }
 
@@ -174,6 +210,13 @@ async function saveToStorage() {
 
     try {
         const token = localStorage.getItem('boarding_house_token');
+        const role = getUserRole();
+        if (role !== 'admin') {
+            showNotification('Permission denied: You are signed in as Roommate (Read Only). Sign in as Admin to save changes to database.', 'error');
+            updateServerStatus(false);
+            return false;
+        }
+
         const headers = { 'Content-Type': 'application/json' };
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
@@ -184,17 +227,23 @@ async function saveToStorage() {
             body: JSON.stringify(state)
         });
         if (response.status === 401) {
-            handleAuthExpiration();
-            return;
+            handleAuthExpiration(false);
+            return false;
         }
         if (response.ok) {
             updateServerStatus(true);
+            return true;
         } else {
             updateServerStatus(false);
+            const errData = await response.json().catch(() => ({}));
+            showNotification(errData.message || 'Failed to sync changes with server database.', 'error');
+            return false;
         }
     } catch (e) {
         console.error('Error saving data to backend:', e);
         updateServerStatus(false);
+        showNotification('Connection error: Unable to reach backend server.', 'error');
+        return false;
     }
 }
 
@@ -685,25 +734,29 @@ function renderDashboardCharts(summaries, statusCounts) {
     // Chart 2: Roommate Payment Status Distribution
     if (charts.statusDist) charts.statusDist.destroy();
     const ctxStatus = document.getElementById('chart-status-dist').getContext('2d');
+    const totalStatusCount = (statusCounts.paidCount || 0) + (statusCounts.partialCount || 0) + (statusCounts.unpaidCount || 0) + (statusCounts.lateCount || 0);
+    const hasStatusData = totalStatusCount > 0;
+
     charts.statusDist = new Chart(ctxStatus, {
         type: 'doughnut',
         data: {
-            labels: ['Paid', 'Partial', 'Not Paid', 'Late'],
+            labels: hasStatusData ? ['Paid', 'Partial', 'Not Paid', 'Late'] : ['No Data'],
             datasets: [{
-                data: [statusCounts.paidCount, statusCounts.partialCount, statusCounts.unpaidCount, statusCounts.lateCount],
-                backgroundColor: [
-                    '#10b981', // Paid
-                    '#f59e0b', // Partial
-                    '#ef4444', // Not Paid
-                    '#6366f1'  // Late
-                ]
+                data: hasStatusData 
+                    ? [statusCounts.paidCount, statusCounts.partialCount, statusCounts.unpaidCount, statusCounts.lateCount]
+                    : [1],
+                backgroundColor: hasStatusData
+                    ? ['#10b981', '#f59e0b', '#ef4444', '#6366f1']
+                    : [isDark ? '#374151' : '#e2e8f0'],
+                borderWidth: hasStatusData ? 2 : 0
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { position: 'bottom', labels: { color: textCol } }
+                legend: { position: 'bottom', labels: { color: textCol } },
+                tooltip: { enabled: hasStatusData }
             }
         }
     });
@@ -896,7 +949,16 @@ function renderMembersTable() {
 
 function openAddMemberModal() {
     document.getElementById('member-modal-title').innerText = 'Add New Roommate';
-    document.getElementById('member-id').value = 'MEM' + String(state.members.length + 1).padStart(3, '0');
+    
+    let maxId = 0;
+    (state.members || []).forEach(m => {
+        if (m.id) {
+            const num = parseInt(m.id.replace(/\D/g, ''), 10);
+            if (!isNaN(num) && num > maxId) maxId = num;
+        }
+    });
+    document.getElementById('member-id').value = 'MEM' + String(maxId + 1).padStart(3, '0');
+    
     document.getElementById('member-name').value = '';
     document.getElementById('member-room').value = '';
     document.getElementById('member-phone').value = '';
@@ -943,22 +1005,29 @@ async function saveMember(event) {
 
     const index = state.members.findIndex(m => m.id === id);
     const memberObj = { id, name, room, phone, status, joinDate, leaveDate, notes };
+    const isNew = (index === -1);
     
     if (index > -1) {
         // Edit existing
         state.members[index] = memberObj;
-        // Rename in collections if changed
         state.collections.forEach(c => {
             if (c.memberId === id) c.memberName = name;
         });
-        showNotification('Roommate profile updated!');
     } else {
         // Add new
         state.members.push(memberObj);
-        showNotification('New roommate registered!');
     }
     
-    await saveToStorage();
+    // Always persist immediately to localStorage
+    localStorage.setItem('boarding_house_data', JSON.stringify(state));
+
+    const savedSuccess = await saveToStorage();
+    if (savedSuccess) {
+        showNotification(isNew ? 'New roommate registered & saved to database!' : 'Roommate profile updated!', 'success');
+    } else {
+        showNotification(isNew ? 'Roommate registered and saved locally!' : 'Roommate profile updated locally!', 'success');
+    }
+    
     hideModal('member-modal');
     refreshAllViews();
 }
@@ -967,8 +1036,15 @@ async function deleteMember(id) {
     if (confirm(`Are you sure you want to delete roommate ${id}? This will remove all their transactional collections history!`)) {
         state.members = state.members.filter(m => m.id !== id);
         state.collections = state.collections.filter(c => c.memberId !== id);
-        await saveToStorage();
-        showNotification('Roommate profile and records deleted.', 'error');
+        
+        localStorage.setItem('boarding_house_data', JSON.stringify(state));
+        
+        const savedSuccess = await saveToStorage();
+        if (savedSuccess) {
+            showNotification('Roommate profile and records deleted.', 'success');
+        } else {
+            showNotification('Roommate profile deleted locally.', 'success');
+        }
         refreshAllViews();
     }
 }
@@ -1176,18 +1252,26 @@ async function saveCollection(event) {
         paymentDate: payDate,
         remarks
     };
-
+    const oldCollection = index > -1 ? { ...state.collections[index] } : null;
     if (index > -1) {
         state.collections[index] = collectionObj;
-        showNotification('Collection record updated!');
     } else {
         state.collections.push(collectionObj);
-        showNotification('Collection payment logged!');
     }
 
-    await saveToStorage();
-    hideModal('collection-modal');
-    refreshAllViews();
+    const savedSuccess = await saveToStorage();
+    if (savedSuccess) {
+        showNotification(index > -1 ? 'Collection record updated!' : 'Collection payment logged!', 'success');
+        hideModal('collection-modal');
+        refreshAllViews();
+    } else {
+        if (index > -1 && oldCollection) {
+            state.collections[index] = oldCollection;
+        } else if (index === -1) {
+            state.collections = state.collections.filter(c => c.id !== collectionObj.id);
+        }
+        refreshAllViews();
+    }
 }
 
 async function deleteCollection(monthOrId, memberId) {
@@ -1201,14 +1285,20 @@ async function deleteCollection(monthOrId, memberId) {
     const label = target ? `${target.memberName || 'Roommate'} (${target.month})` : 'this payment record';
 
     if (confirm(`Are you sure you want to delete the payment log for ${label}?`)) {
+        const oldCollections = [...state.collections];
         if (monthOrId && memberId) {
             state.collections = state.collections.filter(c => !(c.month === monthOrId && c.memberId === memberId));
         } else if (monthOrId) {
             state.collections = state.collections.filter(c => c.id !== monthOrId && c.month !== monthOrId);
         }
-        await saveToStorage();
-        showNotification('Payment log removed.', 'error');
-        refreshAllViews();
+        const savedSuccess = await saveToStorage();
+        if (savedSuccess) {
+            showNotification('Payment log removed.', 'success');
+            refreshAllViews();
+        } else {
+            state.collections = oldCollections;
+            refreshAllViews();
+        }
     }
 }
 
@@ -1222,7 +1312,7 @@ function renderUtilitiesTable() {
     state.utilities.forEach(u => {
         const total = Number(u.water || 0) + Number(u.electricity || 0) + Number(u.internet || 0) + 
                       Number(u.gas || 0) + Number(u.cleaning || 0) + Number(u.other || 0);
-                      
+        
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td><strong>${u.month}</strong></td>
@@ -1233,13 +1323,9 @@ function renderUtilitiesTable() {
             <td>${formatCurrency(u.cleaning)}</td>
             <td>${formatCurrency(u.other)}</td>
             <td><strong>${formatCurrency(total)}</strong></td>
-            <td>${u.paidDate || '-'}</td>
-            <td>${u.paidBy || '-'}</td>
-            <td style="max-width: 120px; overflow: hidden; text-overflow: ellipsis;" title="${u.remarks || ''}">${u.remarks || '-'}</td>
+            <td>${u.paidDate ? `<span class="badge badge-paid">Paid on ${u.paidDate}</span>` : `<span class="badge badge-notpaid">Pending</span>`}</td>
             <td>
-                <button class="btn-icon" onclick="openEditUtilityModal('${u.month}')" title="Log/Edit Utility Bills">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                </button>
+                <button class="btn btn-secondary btn-sm" onclick="openEditUtilityModal('${u.month}')">Edit Bills</button>
             </td>
         `;
         tbody.appendChild(tr);
@@ -1250,9 +1336,7 @@ function openEditUtilityModal(month) {
     const u = state.utilities.find(util => util.month === month);
     if (!u) return;
     
-    document.getElementById('utility-modal-title').innerText = `Log Utility Bills - ${month}`;
     document.getElementById('utility-month').value = u.month;
-    
     document.getElementById('utility-water').value = u.water || 0;
     document.getElementById('utility-electricity').value = u.electricity || 0;
     document.getElementById('utility-internet').value = u.internet || 0;
@@ -1273,6 +1357,7 @@ async function saveUtility(event) {
     const index = state.utilities.findIndex(u => u.month === month);
     
     if (index === -1) return;
+    const oldUtility = { ...state.utilities[index] };
     
     state.utilities[index] = {
         month,
@@ -1287,10 +1372,15 @@ async function saveUtility(event) {
         remarks: document.getElementById('utility-remarks').value
     };
 
-    showNotification(`Utility bill values updated for ${month}!`);
-    await saveToStorage();
-    hideModal('utility-modal');
-    refreshAllViews();
+    const savedSuccess = await saveToStorage();
+    if (savedSuccess) {
+        showNotification(`Utility bill values updated for ${month}!`, 'success');
+        hideModal('utility-modal');
+        refreshAllViews();
+    } else {
+        state.utilities[index] = oldUtility;
+        refreshAllViews();
+    }
 }
 
 // 5. Miscellaneous Expenses Tab
@@ -1384,27 +1474,42 @@ async function saveExpense(event) {
     }
 
     const index = state.expenses.findIndex(e => e.id === id);
+    const oldExpense = index > -1 ? { ...state.expenses[index] } : null;
     const expenseObj = { id, date, category, description, amount, paidTo, method, refNo };
 
     if (index > -1) {
         state.expenses[index] = expenseObj;
-        showNotification('Expense transaction details updated!');
     } else {
         state.expenses.push(expenseObj);
-        showNotification('New expenditure logged successfully!');
     }
 
-    await saveToStorage();
-    hideModal('expense-modal');
-    refreshAllViews();
+    const savedSuccess = await saveToStorage();
+    if (savedSuccess) {
+        showNotification(index > -1 ? 'Expense details updated!' : 'New expenditure logged successfully!', 'success');
+        hideModal('expense-modal');
+        refreshAllViews();
+    } else {
+        if (index > -1 && oldExpense) {
+            state.expenses[index] = oldExpense;
+        } else if (index === -1) {
+            state.expenses = state.expenses.filter(e => e.id !== id);
+        }
+        refreshAllViews();
+    }
 }
 
 async function deleteExpense(id) {
     if (confirm(`Remove expense log entry ${id}?`)) {
+        const oldExpenses = [...state.expenses];
         state.expenses = state.expenses.filter(e => e.id !== id);
-        await saveToStorage();
-        showNotification('Expense entry removed.', 'error');
-        refreshAllViews();
+        const savedSuccess = await saveToStorage();
+        if (savedSuccess) {
+            showNotification('Expense entry removed.', 'success');
+            refreshAllViews();
+        } else {
+            state.expenses = oldExpenses;
+            refreshAllViews();
+        }
     }
 }
 
@@ -2050,9 +2155,11 @@ async function saveSettings(event) {
     state.settings.startMonth = startMonth;
     state.settings.maxMembers = maxMembers;
     
-    await saveToStorage();
-    showNotification('System variable configuration updated!');
-    refreshAllViews();
+    const savedSuccess = await saveToStorage();
+    if (savedSuccess) {
+        showNotification('System variable configuration updated!', 'success');
+        refreshAllViews();
+    }
 }
 
 // Backup & Restore (JSON Porting)

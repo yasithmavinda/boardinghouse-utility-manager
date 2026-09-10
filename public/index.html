@@ -283,12 +283,12 @@
 
                     <div class="chart-card">
                         <span class="chart-title">Payment Status Distribution</span>
-                        <div class="chart-container" style="display: flex; align-items: center; justify-content: space-between;">
-                            <div style="width: 60%; height: 100%;">
+                        <div class="chart-container" style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                            <div style="flex: 1; height: 100%; min-width: 0;">
                                 <canvas id="chart-status-dist"></canvas>
                             </div>
-                            <div style="width: 35%; padding-left: 10px;">
-                                <table class="custom-table" style="font-size: 0.8rem; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm);">
+                            <div style="width: 175px; flex-shrink: 0;">
+                                <table class="status-count-table">
                                     <tbody id="dashboard-status-counts">
                                         <!-- Computed in JS -->
                                     </tbody>
