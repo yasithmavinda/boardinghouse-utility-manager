@@ -1171,6 +1171,7 @@ function renderCollectionsTable() {
 }
 
 function openAddCollectionModal() {
+    populateSelectDropdowns();
     document.getElementById('collection-modal-title').innerText = 'Log Roommate Payment';
     document.getElementById('collection-action').value = 'ADD';
     document.getElementById('collection-orig-month').value = '';
@@ -1196,6 +1197,8 @@ function openEditCollectionModal(monthOrId, memberId) {
     const c = state.collections.find(col => (col.id && col.id === monthOrId) || (col.month === monthOrId && col.memberId === memberId));
     if (!c) return;
     
+    populateSelectDropdowns();
+
     document.getElementById('collection-modal-title').innerText = 'Modify Roommate Payment';
     document.getElementById('collection-action').value = 'EDIT';
     document.getElementById('collection-orig-month').value = c.month;
@@ -1242,15 +1245,21 @@ async function saveCollection(event) {
     if (action === 'ADD') {
         const exists = state.collections.some(c => c.month === month && c.memberId === memberId);
         if (exists) {
-            showNotification('A record already exists for this roommate in this month. Use Edit instead!', 'error');
-            return;
+            if (confirm(`A record already exists for ${member.name} in ${month}. Overwrite with these payment details?`)) {
+                state.collections = state.collections.filter(c => !(c.month === month && c.memberId === memberId));
+            } else {
+                return;
+            }
         }
     } else if (action === 'EDIT') {
         if (month !== origMonth || memberId !== origMemberId) {
             const exists = state.collections.some(c => c.month === month && c.memberId === memberId);
             if (exists) {
-                showNotification(`A payment record already exists for ${member.name} in ${month}!`, 'error');
-                return;
+                if (confirm(`A payment record already exists for ${member.name} in ${month}. Overwrite it with this updated record?`)) {
+                    state.collections = state.collections.filter(c => !(c.month === month && c.memberId === memberId));
+                } else {
+                    return;
+                }
             }
         }
     }
@@ -1273,7 +1282,7 @@ async function saveCollection(event) {
         remarks
     };
 
-    const oldCollection = existingIndex > -1 ? { ...state.collections[existingIndex] } : null;
+    const oldCollections = JSON.parse(JSON.stringify(state.collections));
     if (existingIndex > -1) {
         state.collections[existingIndex] = collectionObj;
     } else {
@@ -1282,15 +1291,11 @@ async function saveCollection(event) {
 
     const savedSuccess = await saveToStorage();
     if (savedSuccess) {
-        showNotification(existingIndex > -1 ? 'Collection record updated!' : 'Collection payment logged!', 'success');
+        showNotification('Collection payment record updated!', 'success');
         hideModal('collection-modal');
         refreshAllViews();
     } else {
-        if (existingIndex > -1 && oldCollection) {
-            state.collections[existingIndex] = oldCollection;
-        } else if (existingIndex === -1) {
-            state.collections = state.collections.filter(c => c.id !== collectionObj.id);
-        }
+        state.collections = oldCollections;
         refreshAllViews();
     }
 }
