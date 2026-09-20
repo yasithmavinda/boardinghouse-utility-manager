@@ -1173,6 +1173,8 @@ function renderCollectionsTable() {
 function openAddCollectionModal() {
     document.getElementById('collection-modal-title').innerText = 'Log Roommate Payment';
     document.getElementById('collection-action').value = 'ADD';
+    document.getElementById('collection-orig-month').value = '';
+    document.getElementById('collection-orig-member').value = '';
     
     // Prefill defaults
     document.getElementById('collection-month').disabled = false;
@@ -1196,12 +1198,14 @@ function openEditCollectionModal(monthOrId, memberId) {
     
     document.getElementById('collection-modal-title').innerText = 'Modify Roommate Payment';
     document.getElementById('collection-action').value = 'EDIT';
+    document.getElementById('collection-orig-month').value = c.month;
+    document.getElementById('collection-orig-member').value = c.memberId;
     
     document.getElementById('collection-month').value = c.month;
-    document.getElementById('collection-month').disabled = true;
+    document.getElementById('collection-month').disabled = false;
     
     document.getElementById('collection-member').value = c.memberId;
-    document.getElementById('collection-member').disabled = true;
+    document.getElementById('collection-member').disabled = false;
     
     document.getElementById('collection-standard').value = c.standardContribution;
     document.getElementById('collection-extra').value = c.extraContribution;
@@ -1217,6 +1221,9 @@ async function saveCollection(event) {
     event.preventDefault();
     
     const action = document.getElementById('collection-action').value;
+    const origMonth = document.getElementById('collection-orig-month').value;
+    const origMemberId = document.getElementById('collection-orig-member').value;
+
     const month = document.getElementById('collection-month').value;
     const memberId = document.getElementById('collection-member').value;
     const standard = Number(document.getElementById('collection-standard').value);
@@ -1232,14 +1239,27 @@ async function saveCollection(event) {
         return;
     }
     
-    const index = state.collections.findIndex(c => c.month === month && c.memberId === memberId);
-    
-    if (action === 'ADD' && index > -1) {
-        showNotification('A record already exists for this roommate in this month. Use Edit instead!', 'error');
-        return;
+    if (action === 'ADD') {
+        const exists = state.collections.some(c => c.month === month && c.memberId === memberId);
+        if (exists) {
+            showNotification('A record already exists for this roommate in this month. Use Edit instead!', 'error');
+            return;
+        }
+    } else if (action === 'EDIT') {
+        if (month !== origMonth || memberId !== origMemberId) {
+            const exists = state.collections.some(c => c.month === month && c.memberId === memberId);
+            if (exists) {
+                showNotification(`A payment record already exists for ${member.name} in ${month}!`, 'error');
+                return;
+            }
+        }
     }
 
-    const existingId = index > -1 ? state.collections[index].id : null;
+    const existingIndex = origMonth && origMemberId 
+        ? state.collections.findIndex(c => c.month === origMonth && c.memberId === origMemberId)
+        : state.collections.findIndex(c => c.month === month && c.memberId === memberId);
+        
+    const existingId = existingIndex > -1 ? state.collections[existingIndex].id : null;
     const collectionObj = {
         id: existingId || ('COL_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5)),
         month,
@@ -1252,22 +1272,23 @@ async function saveCollection(event) {
         paymentDate: payDate,
         remarks
     };
-    const oldCollection = index > -1 ? { ...state.collections[index] } : null;
-    if (index > -1) {
-        state.collections[index] = collectionObj;
+
+    const oldCollection = existingIndex > -1 ? { ...state.collections[existingIndex] } : null;
+    if (existingIndex > -1) {
+        state.collections[existingIndex] = collectionObj;
     } else {
         state.collections.push(collectionObj);
     }
 
     const savedSuccess = await saveToStorage();
     if (savedSuccess) {
-        showNotification(index > -1 ? 'Collection record updated!' : 'Collection payment logged!', 'success');
+        showNotification(existingIndex > -1 ? 'Collection record updated!' : 'Collection payment logged!', 'success');
         hideModal('collection-modal');
         refreshAllViews();
     } else {
-        if (index > -1 && oldCollection) {
-            state.collections[index] = oldCollection;
-        } else if (index === -1) {
+        if (existingIndex > -1 && oldCollection) {
+            state.collections[existingIndex] = oldCollection;
+        } else if (existingIndex === -1) {
             state.collections = state.collections.filter(c => c.id !== collectionObj.id);
         }
         refreshAllViews();
@@ -1661,11 +1682,13 @@ function openEditCollectionFromTracker(monthYear, memberId) {
         // Create new
         document.getElementById('collection-modal-title').innerText = 'Log Roommate Payment';
         document.getElementById('collection-action').value = 'ADD';
+        document.getElementById('collection-orig-month').value = '';
+        document.getElementById('collection-orig-member').value = '';
         
         document.getElementById('collection-month').value = monthYear;
-        document.getElementById('collection-month').disabled = true;
+        document.getElementById('collection-month').disabled = false;
         document.getElementById('collection-member').value = memberId;
-        document.getElementById('collection-member').disabled = true;
+        document.getElementById('collection-member').disabled = false;
         
         document.getElementById('collection-standard').value = state.settings.defaultContribution;
         document.getElementById('collection-extra').value = 0;
